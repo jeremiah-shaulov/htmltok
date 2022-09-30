@@ -10,7 +10,7 @@ During tokenization, this library finds errors in markup, like not closed tags, 
 ## Example
 
 ```ts
-import {htmltok, TokenType} from 'https://deno.land/x/htmltok@v0.0.2/mod.ts';
+import {htmltok, TokenType} from 'https://deno.land/x/htmltok@v0.0.3/mod.ts';
 
 const source =
 `	<meta name=viewport content="width=device-width, initial-scale=1.0">
@@ -123,7 +123,7 @@ You can ignore it, or you can react by calling the following `it.next(more)` fun
 In this case this code will be appended to the last token, and the tokenization process will continue.
 
 ```ts
-import {htmltok, TokenType} from 'https://deno.land/x/htmltok@v0.0.2/mod.ts';
+import {htmltok, TokenType} from 'https://deno.land/x/htmltok@v0.0.3/mod.ts';
 
 let source =
 `	<meta name=viewport content="width=device-width, initial-scale=1.0">
@@ -279,12 +279,30 @@ interface Settings
 - `quoteAttributes` - If `true`, will generate `TokenType.FIX_STRUCTURE_ATTR_QUOT` tokens to suggest quotes around unquoted attribute values.
 - `unquoteAttributes` - If `true`, will return quotes around attribute values as `TokenType.JUNK`, if such quotes are not necessary. HTML5 standard allows unquoted attributes (unlike XML), and removing quotes can make markup lighter, and more readable by humans and robots.
 
+## HTML normalization
+
+`htmltok()` can be used to normalize HTML, that is, to fix markup errors. This includes closing unclosed tags, quoting attributes (in XML or if `Settings.quoteAttributes` is set), etc.
+
+```ts
+import {htmltok} from 'https://deno.land/x/htmltok@v0.0.3/mod.ts';
+
+const html = `<a target=_blank>Click here`;
+const normalHtml = [...htmltok(html, {quoteAttributes: true})].map(t => t.normalized()).join('');
+console.log(normalHtml);
+```
+
+Prints:
+
+```
+<a target="_blank">Click here</a>
+```
+
 ## Preprocessing instructions
 
 This tokenizer allows you to make template parsers that will utilize "preprocessing instructions" feature of XML-like markup languages.
 However there's one limitation. The PIs must not cross markup boundaries.
 
-If you want to execute preprocessing instructions before parsing markup, it's very simple to do, and you don't need `htmltok` for this (just `str.replace(/<\?.*?\?>/g, exec)`).
+If you want to execute preprocessing instructions before parsing markup, it's very simple to do, and you don't need `htmltok` for this (just `str.replace(/<\?[\S\s]*?\?>/g, exec)`).
 Creating parsers that first recognize the markup structure, and maybe split it, and execute PIs in later steps, requires to deal with PIs as part of markup, and `htmltok` can help here.
 
 The following is code that has inter-markup PIs, and it's not suitable for `htmltok`:
@@ -312,7 +330,7 @@ async function *htmltokReader(source: string, settings: Settings={}, hierarchy: 
 If `decoder` is provided, will use it to convert bytes to text. This function only supports "utf-8", "utf-16le", "utf-16be" and all 1-byte encodings (not "big5", etc.).
 
 ```ts
-import {htmltokReader} from 'https://deno.land/x/htmltok@v0.0.2/mod.ts';
+import {htmltokReader} from 'https://deno.land/x/htmltok@v0.0.3/mod.ts';
 import {readerFromStreamReader} from "https://deno.land/std@0.113.0/io/mod.ts";
 
 const res = await fetch("https://example.com/");
@@ -332,7 +350,7 @@ async function *htmltokReaderArray(source: string, settings: Settings={}, hierar
 ```
 
 ```ts
-import {htmltokReaderArray} from 'https://deno.land/x/htmltok@v0.0.2/mod.ts';
+import {htmltokReaderArray} from 'https://deno.land/x/htmltok@v0.0.3/mod.ts';
 import {readerFromStreamReader} from "https://deno.land/std@0.113.0/io/mod.ts";
 
 const res = await fetch("https://example.com/");
@@ -354,7 +372,7 @@ This function decodes entities (character references), like `&apos;`, `&#39;` or
 If `skipPi` is `true`, it will operate only on parts between preprocessing instructions.
 
 ```ts
-import {htmlDecode} from 'https://deno.land/x/htmltok@v0.0.2/mod.ts';
+import {htmlDecode} from 'https://deno.land/x/htmltok@v0.0.3/mod.ts';
 
 console.log(htmlDecode(`Text&amp;text<?&amp;?>text`)); // prints: Text&text<?&?>text
 console.log(htmlDecode(`Text&amp;text<?&amp;?>text`, true)); // prints: Text&text<?&amp;?>text
