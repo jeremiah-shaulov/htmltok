@@ -10,7 +10,7 @@ During tokenization, this library finds errors in markup, like not closed tags, 
 ## Example
 
 ```ts
-import {htmltok, TokenType} from 'https://deno.land/x/htmltok@v0.0.3/mod.ts';
+import {htmltok, TokenType} from 'https://deno.land/x/htmltok@v1.0.0/mod.ts';
 
 const source =
 `	<meta name=viewport content="width=device-width, initial-scale=1.0">
@@ -123,7 +123,7 @@ You can ignore it, or you can react by calling the following `it.next(more)` fun
 In this case this code will be appended to the last token, and the tokenization process will continue.
 
 ```ts
-import {htmltok, TokenType} from 'https://deno.land/x/htmltok@v0.0.3/mod.ts';
+import {htmltok, TokenType} from 'https://deno.land/x/htmltok@v1.0.0/mod.ts';
 
 let source =
 `	<meta name=viewport content="width=device-width, initial-scale=1.0">
@@ -179,7 +179,7 @@ class Token
 - `nLine` - Line number where this token starts.
 - `nColumn` - Column number on the line where this token starts.
 - `level` - Tag nesting level.
-- `tagName` - is set on `TokenType.TAG_OPEN_BEGIN`, `TokenType.TAG_CLOSE`, `TokenType.FIX_STRUCTURE_TAG_OPEN` and `TokenType.FIX_STRUCTURE_TAG_CLOSE`. Lowercased tag name.
+- `tagName` - is set on `TokenType.TAG_OPEN_BEGIN`, `TokenType.TAG_CLOSE`, `TokenType.ATTR_NAME`, `TokenType.ATTR_VALUE`, `TokenType.FIX_STRUCTURE_TAG_OPEN` and `TokenType.FIX_STRUCTURE_TAG_CLOSE`. Lowercased tag name.
 - `isSelfClosing` - is set only on `TokenType.TAG_OPEN_END`. `true` if this tag is one of `area`, `base`, `br`, `col`, `command`, `embed`, `hr`, `img`, `input`, `keygen`, `link`, `menuitem`, `meta`, `param`, `source`, `track`, `wbr`. `Token.text` can be `>` or `/>`, as appears in the source. Also it's set to `true` in foreign (XML) tags that use `/>` to self-close the tag. If `/>` is used in a regular HTML tag, not from the list above, the `/` character is treated as `TokenType.JUNK`.
 - `isForeign` - When parsing in HTML mode (`Settings.mode !== 'xml'`), this flag is set on each token inside `<svg>` and `<math>` tags. In XML mode it's always set.
 
@@ -198,8 +198,9 @@ class Token
 - For `TokenType.CDATA` it returns the containing text (without `<![CDATA[` and `]]>`).
 - For `TokenType.COMMENT` it returns the containing text (without `<!--` and `-->`).
 - For `TokenType.PI` it returns the containing text (without `<?` and `?>`).
-- For `TokenType.TAG_OPEN_BEGIN`, `TokenType.TAG_CLOSE`, `TokenType.FIX_STRUCTURE_TAG_OPEN` and `TokenType.FIX_STRUCTURE_TAG_CLOSE` it returns lowercased tag name (the same as `Token.tagName`).
+- For `TokenType.TAG_OPEN_BEGIN`, `TokenType.TAG_CLOSE`, `TokenType.FIX_STRUCTURE_TAG_OPEN` and `TokenType.FIX_STRUCTURE_TAG_CLOSE` it returns lowercased (if not XML and there're no preprocessing instructions) tag name (the same as `Token.tagName`).
 - For `TokenType.ENTITY` it returns the decoded value of the entity. In both HTML and XML, it understands only standard HTML5 entity names.
+- For `TokenType.ATTR_NAME` it returns lowercased (if not XML and there're no preprocessing instructions) attribute name.
 - For `TokenType.ATTR_VALUE` it returns the entity-decoded value of the attribute, without markup quotes (if used).
 - For `TokenType.RAW_LT` it returns `<`.
 - For `TokenType.RAW_AMP` it returns `&`.
@@ -241,9 +242,9 @@ const enum TokenType
 - `COMMENT` - HTML comment, like `<!--...-->`. It **can** contain preprocessing instructions.
 - `DTD` - Document type declaration, like `<!...>`. It **can** contain preprocessing instructions.
 - `PI` - Preprocessing instruction, like `<?...?>`.
-- `TAG_OPEN_BEGIN` - `<` char followed by tag name, like `<script`. Tag name **can** contain preprocessing instructions, like `<sc<?...?>ip<?...?>`. `Token.tagName` contains lowercased tag name.
+- `TAG_OPEN_BEGIN` - `<` char followed by tag name, like `<script`. Tag name **can** contain preprocessing instructions, like `<sc<?...?>ip<?...?>`. `Token.tagName` contains lowercased (if not XML and there're no preprocessing instructions) tag name.
 - `TAG_OPEN_SPACE` - Any number of whitespace characters (can include newline chars) inside opening tag markup. It separates tag name and attributes, and can occure between attributes, and at the end of opening tag.
-- `ATTR_NAME` - Attribute name. It **can** contain preprocessing instructions, like `a<?...?>b<?...?>`.
+- `ATTR_NAME` - Attribute name. It **can** contain preprocessing instructions, like `a<?...?>b<?...?>`. `Token.getValue()` returns lowercased (if not XML and there're no preprocessing instructions) attribute name.
 - `ATTR_EQ` - `=` char after attribute name. It's always followed by `ATTR_VALUE` (optionally preceded by `TAG_OPEN_SPACE`). If `=` is not followed by attribute value, it's returned as `TokenType.JUNK`.
 - `ATTR_VALUE` - Attribute value. It can be quoted in `"` or `'`, or it can be unquoted. This token type **can** contain entities and preprocessing instructions, like `"a<?...?>&lt;<?...?>"`. `Token.getValue()` returns unquoted text with decoded entities, but preprocessing instructions are left intact.
 - `TAG_OPEN_END` - `>` or `/>` chars that terminate opening tag. `Token.isSelfClosing` indicates whether this tag doesn't have corresponding closing tag.
@@ -284,7 +285,7 @@ interface Settings
 `htmltok()` can be used to normalize HTML, that is, to fix markup errors. This includes closing unclosed tags, quoting attributes (in XML or if `Settings.quoteAttributes` is set), etc.
 
 ```ts
-import {htmltok} from 'https://deno.land/x/htmltok@v0.0.3/mod.ts';
+import {htmltok} from 'https://deno.land/x/htmltok@v1.0.0/mod.ts';
 
 const html = `<a target=_blank>Click here`;
 const normalHtml = [...htmltok(html, {quoteAttributes: true})].map(t => t.normalized()).join('');
@@ -330,8 +331,8 @@ async function *htmltokReader(source: string, settings: Settings={}, hierarchy: 
 If `decoder` is provided, will use it to convert bytes to text. This function only supports "utf-8", "utf-16le", "utf-16be" and all 1-byte encodings (not "big5", etc.).
 
 ```ts
-import {htmltokReader} from 'https://deno.land/x/htmltok@v0.0.3/mod.ts';
-import {readerFromStreamReader} from "https://deno.land/std@0.113.0/io/mod.ts";
+import {htmltokReader} from 'https://deno.land/x/htmltok@v1.0.0/mod.ts';
+import {readerFromStreamReader} from 'https://deno.land/std@0.167.0/streams/reader_from_stream_reader.ts';
 
 const res = await fetch("https://example.com/");
 const reader = readerFromStreamReader(res.body!.getReader());
@@ -350,8 +351,8 @@ async function *htmltokReaderArray(source: string, settings: Settings={}, hierar
 ```
 
 ```ts
-import {htmltokReaderArray} from 'https://deno.land/x/htmltok@v0.0.3/mod.ts';
-import {readerFromStreamReader} from "https://deno.land/std@0.113.0/io/mod.ts";
+import {htmltokReaderArray} from 'https://deno.land/x/htmltok@v1.0.0/mod.ts';
+import {readerFromStreamReader} from 'https://deno.land/std@0.167.0/streams/reader_from_stream_reader.ts';
 
 const res = await fetch("https://example.com/");
 const reader = readerFromStreamReader(res.body!.getReader());
@@ -372,7 +373,7 @@ This function decodes entities (character references), like `&apos;`, `&#39;` or
 If `skipPi` is `true`, it will operate only on parts between preprocessing instructions.
 
 ```ts
-import {htmlDecode} from 'https://deno.land/x/htmltok@v0.0.3/mod.ts';
+import {htmlDecode} from 'https://deno.land/x/htmltok@v1.0.0/mod.ts';
 
 console.log(htmlDecode(`Text&amp;text<?&amp;?>text`)); // prints: Text&text<?&?>text
 console.log(htmlDecode(`Text&amp;text<?&amp;?>text`, true)); // prints: Text&text<?&amp;?>text

@@ -210,6 +210,8 @@ export class Token
 			case TokenType.TAG_CLOSE:
 			case TokenType.FIX_STRUCTURE_TAG_CLOSE:
 				return this.tagName;
+			case TokenType.ATTR_NAME:
+				return this.isForeign || text.indexOf('>')!=-1 ? text : text.toLowerCase(); // lowercase if not XML, and doesn't contain preprocessing instructions
 			case TokenType.ATTR_VALUE:
 				return htmlDecode(text.charCodeAt(0)==C_QUOT || text.charCodeAt(0)==C_APOS ? text.slice(1, -1) : text, true);
 			case TokenType.RAW_LT:
@@ -227,7 +229,7 @@ export class Token
 }
 
 function pad(str: string, width: number)
-{	return str + PADDER.substr(0, width-str.length);
+{	return str + PADDER.substring(0, width-str.length);
 }
 
 export function *htmltok(source: string, settings: Settings={}, hierarchy: string[]=[], tabWidth=4, nLine=1, nColumn=1): Generator<Token, void, string|undefined>
@@ -340,7 +342,7 @@ export function *htmltok(source: string, settings: Settings={}, hierarchy: strin
 		else if (text.charCodeAt(1) == C_SLASH)
 		{	// </name>
 			let tagName = match[1];
-			if (foreignLevel != -2)
+			if (foreignLevel!=-2 && tagName.indexOf('<')==-1)
 			{	tagName = tagName.toLowerCase();
 			}
 			let pos = hierarchy.lastIndexOf(tagName);
@@ -387,7 +389,7 @@ export function *htmltok(source: string, settings: Settings={}, hierarchy: strin
 			const tagOpen = match[2];
 			const attrs = match[3];
 			let tagName = tagOpen.slice(1);
-			if (foreignLevel != -2)
+			if (foreignLevel!=-2 && tagName.indexOf('<')==-1)
 			{	tagName = tagName.toLowerCase();
 			}
 
@@ -448,7 +450,7 @@ export function *htmltok(source: string, settings: Settings={}, hierarchy: strin
 					{	yield new Token(name, TokenType.JUNK_DUP_ATTR_NAME, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
 					}
 					else
-					{	yield new Token(name, TokenType.ATTR_NAME, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					{	yield new Token(name, TokenType.ATTR_NAME, nLine, nColumn, hierarchy.length, tagName, false, foreignLevel!=-1);
 						curAttrs?.add(nameLc);
 					}
 					countLines(name, 0, name.length);
@@ -496,11 +498,11 @@ export function *htmltok(source: string, settings: Settings={}, hierarchy: strin
 								{	const str = attrs.slice(i, iAfterValue);
 									if (quoteAttributesMode == QuoteAttributesMode.QUOTE)
 									{	yield new Token('"', TokenType.FIX_STRUCTURE_ATTR_QUOT, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-										yield new Token(str, TokenType.ATTR_VALUE, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+										yield new Token(str, TokenType.ATTR_VALUE, nLine, nColumn, hierarchy.length, tagName, false, foreignLevel!=-1);
 										yield new Token('"', TokenType.FIX_STRUCTURE_ATTR_QUOT, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
 									}
 									else
-									{	yield new Token(str, TokenType.ATTR_VALUE, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+									{	yield new Token(str, TokenType.ATTR_VALUE, nLine, nColumn, hierarchy.length, tagName, false, foreignLevel!=-1);
 									}
 									nColumn += str.length;
 								}
@@ -530,7 +532,7 @@ L:										for (let j=i+1, jEnd=iAfterValue-1; j<jEnd; j++)
 									}
 									if (!unquote)
 									{	const str = attrs.slice(i, iAfterValue);
-										yield new Token(str, TokenType.ATTR_VALUE, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+										yield new Token(str, TokenType.ATTR_VALUE, nLine, nColumn, hierarchy.length, tagName, false, foreignLevel!=-1);
 										nColumn++;
 										countLines(str, 1, str.length-1);
 										nColumn++;
@@ -540,7 +542,7 @@ L:										for (let j=i+1, jEnd=iAfterValue-1; j<jEnd; j++)
 										const qtC = qt==C_QUOT ? '"' : "'";
 										yield new Token(qtC, TokenType.JUNK, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
 										nColumn++;
-										yield new Token(str, TokenType.ATTR_VALUE, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+										yield new Token(str, TokenType.ATTR_VALUE, nLine, nColumn, hierarchy.length, tagName, false, foreignLevel!=-1);
 										countLines(str, 0, str.length);
 										yield new Token(qtC, TokenType.JUNK, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
 										nColumn++;

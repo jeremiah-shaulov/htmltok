@@ -1,5 +1,8 @@
 import {htmltok, htmltokReader, htmltokReaderArray, Token, TokenType} from "../htmltok.ts";
-import {assertEquals} from "https://deno.land/std@0.106.0/testing/asserts.ts";
+import {assertEquals} from "https://deno.land/std@0.167.0/testing/asserts.ts";
+
+// deno-lint-ignore no-explicit-any
+type Any = any;
 
 class StringReader
 {	private data: Uint8Array;
@@ -76,7 +79,7 @@ Deno.test
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<Div"},
 				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				{nLine: 1,  nColumn: 6,  level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "Text "},
@@ -94,7 +97,7 @@ Deno.test
 				{nLine: 2,  nColumn: 28, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "."},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -119,7 +122,7 @@ Deno.test
 		assertEquals(tokens1, tokens2);
 		assertEquals(tokens1.join(''), source);
 		assertEquals
-		(	tokens1.map(v => Object.assign({}, v)),
+		(	tokens1.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<Div"},
 				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				{nLine: 1,  nColumn: 6,  level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "Text "},
@@ -147,16 +150,16 @@ Deno.test
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "input",   isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<input"},
 				{nLine: 1,  nColumn: 7,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 8,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "type"},
+				{nLine: 1,  nColumn: 8,  level: 0, tagName: "input",   isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "type"},
 				{nLine: 1,  nColumn: 12, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 13, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "text"},
+				{nLine: 1,  nColumn: 13, level: 0, tagName: "input",   isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "text"},
 				{nLine: 1,  nColumn: 17, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 18, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "value"},
+				{nLine: 1,  nColumn: 18, level: 0, tagName: "input",   isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "value"},
 				{nLine: 1,  nColumn: 23, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 24, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "'One'"},
+				{nLine: 1,  nColumn: 24, level: 0, tagName: "input",   isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "'One'"},
 				{nLine: 1,  nColumn: 29, level: 0, tagName: "",        isSelfClosing: true,  isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				{nLine: 1,  nColumn: 30, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: " "},
 				{nLine: 1,  nColumn: 31, level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<br"},
@@ -169,23 +172,23 @@ Deno.test
 				{nLine: 1,  nColumn: 43, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: " "},
 				{nLine: 1,  nColumn: 44, level: 0, tagName: "img",     isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<img"},
 				{nLine: 1,  nColumn: 48, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 49, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "src"},
+				{nLine: 1,  nColumn: 49, level: 0, tagName: "img",     isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "src"},
 				{nLine: 1,  nColumn: 52, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 53, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "'data:,'"},
+				{nLine: 1,  nColumn: 53, level: 0, tagName: "img",     isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "'data:,'"},
 				{nLine: 1,  nColumn: 61, level: 0, tagName: "",        isSelfClosing: true,  isForeign: false, type: TokenType.TAG_OPEN_END,                 text: "/>"},
 				{nLine: 1,  nColumn: 63, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: " "},
 				{nLine: 1,  nColumn: 64, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "<a id=a/>"},
 				{nLine: 1,  nColumn: 64, level: 0, tagName: "a",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<a"},
 				{nLine: 1,  nColumn: 66, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 67, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "id"},
+				{nLine: 1,  nColumn: 67, level: 0, tagName: "a",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "id"},
 				{nLine: 1,  nColumn: 69, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 70, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "a"},
+				{nLine: 1,  nColumn: 70, level: 0, tagName: "a",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "a"},
 				{nLine: 1,  nColumn: 71, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "/"},
 				{nLine: 1,  nColumn: 72, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				{nLine: 1,  nColumn: 73, level: 0, tagName: "a",       isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_CLOSE,      text: "</a>"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -196,14 +199,14 @@ Deno.test
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "cus2-tag",isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<cus2-tag"},
 				{nLine: 1,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a"},
+				{nLine: 1,  nColumn: 11, level: 0, tagName: "cus2-tag",isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a"},
 				{nLine: 1,  nColumn: 12, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 13, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"1\n2\n3\""},
+				{nLine: 1,  nColumn: 13, level: 0, tagName: "cus2-tag",isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"1\n2\n3\""},
 				{nLine: 3,  nColumn: 3,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: "\n"},
-				{nLine: 4,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "at"},
+				{nLine: 4,  nColumn: 1,  level: 0, tagName: "cus2-tag",isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "at"},
 				{nLine: 4,  nColumn: 3,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: "\n"},
 				{nLine: 5,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				{nLine: 5,  nColumn: 2,  level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: ".  "},
@@ -212,7 +215,7 @@ Deno.test
 				{nLine: 6,  nColumn: 2,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: ";"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -223,18 +226,18 @@ Deno.test
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<div"},
 				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				{nLine: 1,  nColumn: 6,  level: 1, tagName: "span",    isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<span"},
 				{nLine: 1,  nColumn: 11, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 12, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a"},
+				{nLine: 1,  nColumn: 12, level: 1, tagName: "span",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a"},
 				{nLine: 1,  nColumn: 13, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 14, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"1\""},
+				{nLine: 1,  nColumn: 14, level: 1, tagName: "span",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"1\""},
 				{nLine: 1,  nColumn: 17, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_OPEN_SPACE, text: " "},
-				{nLine: 1,  nColumn: 17, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "b"},
+				{nLine: 1,  nColumn: 17, level: 1, tagName: "span",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "b"},
 				{nLine: 1,  nColumn: 18, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 19, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"2\""},
+				{nLine: 1,  nColumn: 19, level: 1, tagName: "span",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"2\""},
 				{nLine: 1,  nColumn: 22, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				{nLine: 1,  nColumn: 23, level: 2, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "Hello"},
 				{nLine: 1,  nColumn: 28, level: 1, tagName: "span",    isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_CLOSE,      text: "</span>"},
@@ -260,7 +263,7 @@ Deno.test
 			]
 		);
 		assertEquals(tokens.map(t => t.normalized()).join(''), `<div><span a="1" b="2">Hello</span></div>\n  <div>A<b>B<u>BU</u></b><u>U</u></div>\n`);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -271,7 +274,7 @@ Deno.test
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "cus-tag", isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<cus-tag"},
 				{nLine: 1,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				{nLine: 1,  nColumn: 10, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "  "},
@@ -285,7 +288,7 @@ Deno.test
 				{nLine: 2,  nColumn: 32, level: 0, tagName: "cus-tag", isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_CLOSE,      text: "</cus-tag>"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -296,7 +299,7 @@ Deno.test
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "cus-tag", isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<cus-tag"},
 				{nLine: 1,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: "\n"},
 				{nLine: 2,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
@@ -311,7 +314,7 @@ Deno.test
 				{nLine: 7,  nColumn: 4,  level: 0, tagName: "cus-tag", isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_CLOSE,      text: "</cus-tag>"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -322,18 +325,18 @@ Deno.test
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "cus-tag", isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<cus-tag"},
 				{nLine: 1,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
 				{nLine: 1,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "\"\" "},
-				{nLine: 1,  nColumn: 13, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a"},
+				{nLine: 1,  nColumn: 13, level: 0, tagName: "cus-tag", isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a"},
 				{nLine: 1,  nColumn: 14, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "1"},
+				{nLine: 1,  nColumn: 15, level: 0, tagName: "cus-tag", isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "1"},
 				{nLine: 1,  nColumn: 16, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
 				{nLine: 1,  nColumn: 17, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "/ "},
-				{nLine: 1,  nColumn: 19, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "b"},
+				{nLine: 1,  nColumn: 19, level: 0, tagName: "cus-tag", isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "b"},
 				{nLine: 1,  nColumn: 20, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 21, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "2"},
+				{nLine: 1,  nColumn: 21, level: 0, tagName: "cus-tag", isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "2"},
 				{nLine: 1,  nColumn: 22, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				{nLine: 1,  nColumn: 23, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "."},
 				{nLine: 1,  nColumn: 24, level: 0, tagName: "cus-tag", isSelfClosing: false, isForeign: false, type: TokenType.TAG_CLOSE,                    text: "</cus-tag>"},
@@ -345,7 +348,7 @@ Deno.test
 			]
 		);
 		assertEquals(tokens.map(t => t.normalized()).join(''), `<cus-tag a=1 b=2>.</cus-tag> &amp; &lt;`);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -356,24 +359,24 @@ Deno.test
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "<br = a=1 = b='2'>"},
 				{nLine: 1,  nColumn: 1,  level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<br"},
 				{nLine: 1,  nColumn: 4,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
 				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "= "},
-				{nLine: 1,  nColumn: 7,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a"},
+				{nLine: 1,  nColumn: 7,  level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a"},
 				{nLine: 1,  nColumn: 8,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "1"},
+				{nLine: 1,  nColumn: 9,  level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "1"},
 				{nLine: 1,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
 				{nLine: 1,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "= "},
-				{nLine: 1,  nColumn: 13, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "b"},
+				{nLine: 1,  nColumn: 13, level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "b"},
 				{nLine: 1,  nColumn: 14, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "'2'"},
+				{nLine: 1,  nColumn: 15, level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "'2'"},
 				{nLine: 1,  nColumn: 18, level: 0, tagName: "",        isSelfClosing: true,  isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 			]
 		);
 		assertEquals(tokens.map(t => t.normalized()).join(''), `<br a=1 b='2'>`);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -384,7 +387,7 @@ Deno.test
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<br"},
 				{nLine: 1,  nColumn: 4,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
 				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "="},
@@ -397,19 +400,19 @@ Deno.test
 				{nLine: 1,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: " "},
 				{nLine: 1,  nColumn: 16, level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<br"},
 				{nLine: 1,  nColumn: 19, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 20, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a"},
+				{nLine: 1,  nColumn: 20, level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a"},
 				{nLine: 1,  nColumn: 21, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "="},
 				{nLine: 1,  nColumn: 22, level: 0, tagName: "",        isSelfClosing: true,  isForeign: false, type: TokenType.TAG_OPEN_END,                 text: "/>"},
 				{nLine: 1,  nColumn: 24, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: " "},
 				{nLine: 1,  nColumn: 25, level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<br"},
 				{nLine: 1,  nColumn: 28, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 29, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a"},
+				{nLine: 1,  nColumn: 29, level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a"},
 				{nLine: 1,  nColumn: 30, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "=\""},
 				{nLine: 1,  nColumn: 32, level: 0, tagName: "",        isSelfClosing: true,  isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				{nLine: 1,  nColumn: 33, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "\n"},
 				{nLine: 2,  nColumn: 1,  level: 0, tagName: "b",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<b"},
 				{nLine: 2,  nColumn: 3,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 2,  nColumn: 4,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a"},
+				{nLine: 2,  nColumn: 4,  level: 0, tagName: "b",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a"},
 				{nLine: 2,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "="},
 				{nLine: 2,  nColumn: 6,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "/"},
 				{nLine: 2,  nColumn: 7,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
@@ -418,7 +421,7 @@ Deno.test
 			]
 		);
 		assertEquals(tokens.map(t => t.normalized()).join(''), `<br > <br > <br a/> <br a>\n<b a></b>`);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -429,43 +432,43 @@ Deno.test
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "b",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<b"},
 				{nLine: 1,  nColumn: 3,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 4,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "v"},
+				{nLine: 1,  nColumn: 4,  level: 0, tagName: "b",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "v"},
 				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 6,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"Aф៘\n😀\""},
+				{nLine: 1,  nColumn: 6,  level: 0, tagName: "b",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"Aф៘\n😀\""},
 				{nLine: 2,  nColumn: 3,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 2,  nColumn: 4,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "A"},
+				{nLine: 2,  nColumn: 4,  level: 0, tagName: "b",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "A"},
 				{nLine: 2,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 2,  nColumn: 6,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"\r\n\""},
+				{nLine: 2,  nColumn: 6,  level: 0, tagName: "b",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"\r\n\""},
 				{nLine: 3,  nColumn: 2,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 3,  nColumn: 3,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "3"},
+				{nLine: 3,  nColumn: 3,  level: 0, tagName: "b",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "3"},
 				{nLine: 3,  nColumn: 4,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: "\t"},
-				{nLine: 3,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "45"},
+				{nLine: 3,  nColumn: 5,  level: 0, tagName: "b",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "45"},
 				{nLine: 3,  nColumn: 7,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: "\t"},
-				{nLine: 3,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "6"},
+				{nLine: 3,  nColumn: 9,  level: 0, tagName: "b",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "6"},
 				{nLine: 3,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: "\t"},
-				{nLine: 3,  nColumn: 13, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "7"},
+				{nLine: 3,  nColumn: 13, level: 0, tagName: "b",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "7"},
 				{nLine: 3,  nColumn: 14, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
 				{nLine: 3,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: "\t"},
-				{nLine: 3,  nColumn: 17, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "8"},
+				{nLine: 3,  nColumn: 17, level: 0, tagName: "b",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "8"},
 				{nLine: 3,  nColumn: 18, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: "\t"},
-				{nLine: 3,  nColumn: 21, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "9"},
+				{nLine: 3,  nColumn: 21, level: 0, tagName: "b",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "9"},
 				{nLine: 3,  nColumn: 22, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 3,  nColumn: 23, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "w"},
+				{nLine: 3,  nColumn: 23, level: 0, tagName: "b",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "w"},
 				{nLine: 3,  nColumn: 24, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 3,  nColumn: 25, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"L1\\\n\tL2\""},
+				{nLine: 3,  nColumn: 25, level: 0, tagName: "b",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"L1\\\n\tL2\""},
 				{nLine: 4,  nColumn: 8,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 4,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "B"},
+				{nLine: 4,  nColumn: 9,  level: 0, tagName: "b",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "B"},
 				{nLine: 4,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 4,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"😀\""},
+				{nLine: 4,  nColumn: 11, level: 0, tagName: "b",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"😀\""},
 				{nLine: 4,  nColumn: 14, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				{nLine: 4,  nColumn: 15, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "</b>"},
 				{nLine: 4,  nColumn: 15, level: 0, tagName: "b",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_CLOSE,                    text: "</b>"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -476,38 +479,38 @@ Deno.test
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
-			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "A"},
-				{nLine: 1,  nColumn: 2,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.PI,                           text: "<?B?>"},
-				{nLine: 1,  nColumn: 7,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "C  "},
-				{nLine: 1,  nColumn: 10, level: 0, tagName: "<?=name?>", isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,             text: "<<?=NAME?>"},
-				{nLine: 1,  nColumn: 20, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 21, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a"},
-				{nLine: 1,  nColumn: 22, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 23, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"v0<?v1?>v2\""},
-				{nLine: 1,  nColumn: 35, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 36, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a<?=N?>"},
-				{nLine: 1,  nColumn: 43, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 44, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "<?=V?>"},
-				{nLine: 1,  nColumn: 50, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 51, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "<?=N2?>"},
-				{nLine: 1,  nColumn: 58, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 59, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "<?=N3?>3"},
-				{nLine: 1,  nColumn: 67, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 68, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "''"},
-				{nLine: 1,  nColumn: 70, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
-				{nLine: 1,  nColumn: 71, level: 0, tagName: "<?=name?>", isSelfClosing: false, isForeign: false, type: TokenType.TAG_CLOSE,                  text: "</<?=NAME?> >"},
-				{nLine: 1,  nColumn: 84, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "  "},
-				{nLine: 1,  nColumn: 86, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ENTITY,                       text: "&<?ENT1?>E<?ENT2?>;"},
-				{nLine: 1,  nColumn: 105, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: " "},
-				{nLine: 1,  nColumn: 106, level: 0, tagName: "<?t?>t<?tt?>", isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,         text: "<<?T?>t<?TT?>"},
-				{nLine: 1,  nColumn: 119, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
-				{nLine: 1,  nColumn: 120, level: 1, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "*"},
-				{nLine: 1,  nColumn: 121, level: 1, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "</<?T?>t<?TT?>>"},
-				{nLine: 1,  nColumn: 121, level: 0, tagName: "<?t?>t<?tt?>", isSelfClosing: false, isForeign: false, type: TokenType.TAG_CLOSE,              text: "</<?T?>t<?TT?>>"},
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",         isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "A"},
+				{nLine: 1,  nColumn: 2,  level: 0, tagName: "",         isSelfClosing: false, isForeign: false, type: TokenType.PI,                           text: "<?B?>"},
+				{nLine: 1,  nColumn: 7,  level: 0, tagName: "",         isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "C  "},
+				{nLine: 1,  nColumn: 10, level: 0, tagName: "<?=NAME?>",isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<<?=NAME?>"},
+				{nLine: 1,  nColumn: 20, level: 0, tagName: "",         isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
+				{nLine: 1,  nColumn: 21, level: 0, tagName: "<?=NAME?>",isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a"},
+				{nLine: 1,  nColumn: 22, level: 0, tagName: "",         isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
+				{nLine: 1,  nColumn: 23, level: 0, tagName: "<?=NAME?>",isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"v0<?v1?>v2\""},
+				{nLine: 1,  nColumn: 35, level: 0, tagName: "",         isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
+				{nLine: 1,  nColumn: 36, level: 0, tagName: "<?=NAME?>",isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a<?=N?>"},
+				{nLine: 1,  nColumn: 43, level: 0, tagName: "",         isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
+				{nLine: 1,  nColumn: 44, level: 0, tagName: "<?=NAME?>",isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "<?=V?>"},
+				{nLine: 1,  nColumn: 50, level: 0, tagName: "",         isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
+				{nLine: 1,  nColumn: 51, level: 0, tagName: "<?=NAME?>",isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "<?=N2?>"},
+				{nLine: 1,  nColumn: 58, level: 0, tagName: "",         isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
+				{nLine: 1,  nColumn: 59, level: 0, tagName: "<?=NAME?>",isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "<?=N3?>3"},
+				{nLine: 1,  nColumn: 67, level: 0, tagName: "",         isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
+				{nLine: 1,  nColumn: 68, level: 0, tagName: "<?=NAME?>",isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "''"},
+				{nLine: 1,  nColumn: 70, level: 0, tagName: "",         isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
+				{nLine: 1,  nColumn: 71, level: 0, tagName: "<?=NAME?>",isSelfClosing: false, isForeign: false, type: TokenType.TAG_CLOSE,                    text: "</<?=NAME?> >"},
+				{nLine: 1,  nColumn: 84, level: 0, tagName: "",         isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "  "},
+				{nLine: 1,  nColumn: 86, level: 0, tagName: "",         isSelfClosing: false, isForeign: false, type: TokenType.ENTITY,                       text: "&<?ENT1?>E<?ENT2?>;"},
+				{nLine: 1,  nColumn: 105, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: " "},
+				{nLine: 1,  nColumn: 106, level: 0, tagName: "<?T?>t<?TT?>", isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,          text: "<<?T?>t<?TT?>"},
+				{nLine: 1,  nColumn: 119, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
+				{nLine: 1,  nColumn: 120, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "*"},
+				{nLine: 1,  nColumn: 121, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "</<?T?>t<?TT?>>"},
+				{nLine: 1,  nColumn: 121, level: 0, tagName: "<?T?>t<?TT?>", isSelfClosing: false, isForeign: false, type: TokenType.TAG_CLOSE,               text: "</<?T?>t<?TT?>>"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -518,7 +521,7 @@ Deno.test
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<br"},
 				{nLine: 1,  nColumn: 4,  level: 0, tagName: "",        isSelfClosing: true,  isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: " "},
@@ -538,9 +541,9 @@ Deno.test
 				{nLine: 1,  nColumn: 46, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: " "},
 				{nLine: 1,  nColumn: 47, level: 0, tagName: "textarea",isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<textarea"},
 				{nLine: 1,  nColumn: 56, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 57, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "cols"},
+				{nLine: 1,  nColumn: 57, level: 0, tagName: "textarea",isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "cols"},
 				{nLine: 1,  nColumn: 61, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 62, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "2"},
+				{nLine: 1,  nColumn: 62, level: 0, tagName: "textarea",isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "2"},
 				{nLine: 1,  nColumn: 63, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				{nLine: 1,  nColumn: 64, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "Line1"},
 				{nLine: 1,  nColumn: 69, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.RAW_LT,                       text: "<"},
@@ -551,7 +554,7 @@ Deno.test
 				{nLine: 1,  nColumn: 84, level: 0, tagName: "textarea",isSelfClosing: false, isForeign: false, type: TokenType.TAG_CLOSE,                    text: "</textarea>"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -562,7 +565,7 @@ Deno.test
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<br"},
 				{nLine: 1,  nColumn: 4,  level: 0, tagName: "",        isSelfClosing: true,  isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: " "},
@@ -578,9 +581,9 @@ Deno.test
 				{nLine: 1,  nColumn: 48, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: " "},
 				{nLine: 1,  nColumn: 49, level: 0, tagName: "style",   isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<style"},
 				{nLine: 1,  nColumn: 55, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 56, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "cols"},
+				{nLine: 1,  nColumn: 56, level: 0, tagName: "style",   isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "cols"},
 				{nLine: 1,  nColumn: 60, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 61, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "2"},
+				{nLine: 1,  nColumn: 61, level: 0, tagName: "style",   isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "2"},
 				{nLine: 1,  nColumn: 62, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				{nLine: 1,  nColumn: 63, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "Line1"},
 				{nLine: 1,  nColumn: 68, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "<"},
@@ -589,7 +592,7 @@ Deno.test
 				{nLine: 1,  nColumn: 83, level: 0, tagName: "style",   isSelfClosing: false, isForeign: false, type: TokenType.TAG_CLOSE,                    text: "</style>"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -615,33 +618,33 @@ Deno.test
 						}
 					}
 					assertEquals
-					(	tokens.map(v => Object.assign({}, v)),
+					(	tokens.map(v => Object.assign({} as Any, v)),
 						[	{nLine: 1 , nColumn: 1 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,          text: "<b"},
 							{nLine: 1 , nColumn: 3 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: " "},
-							{nLine: 1 , nColumn: 4 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "v"},
+							{nLine: 1 , nColumn: 4 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "v"},
 							{nLine: 1 , nColumn: 5 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                 text: "="},
-							{nLine: 1 , nColumn: 6 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,              text: `"${chars}"`},
+							{nLine: 1 , nColumn: 6 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,              text: `"${chars}"`},
 							{nLine: 2 , nColumn: 3 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: " "},
-							{nLine: 2 , nColumn: 4 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "A"},
+							{nLine: 2 , nColumn: 4 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "A"},
 							{nLine: 2 , nColumn: 5 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                 text: "="},
-							{nLine: 2 , nColumn: 6 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,              text: "\"\r\n\""},
+							{nLine: 2 , nColumn: 6 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,              text: "\"\r\n\""},
 							{nLine: 3 , nColumn: 2 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: " "},
-							{nLine: 3 , nColumn: 3 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "3"},
+							{nLine: 3 , nColumn: 3 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "3"},
 							{nLine: 3 , nColumn: 4 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: "\t"},
-							{nLine: 3 , nColumn: 5 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "45"},
+							{nLine: 3 , nColumn: 5 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "45"},
 							{nLine: 3 , nColumn: 7 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: "\t"},
-							{nLine: 3 , nColumn: 9 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "6"},
+							{nLine: 3 , nColumn: 9 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "6"},
 							{nLine: 3 , nColumn: 10, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: "\t"},
-							{nLine: 3 , nColumn: 13, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "7"},
+							{nLine: 3 , nColumn: 13, level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "7"},
 							{nLine: 3 , nColumn: 14, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                 text: "="},
 							{nLine: 3 , nColumn: 15, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: "\t"},
-							{nLine: 3 , nColumn: 17, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,              text: "8"},
+							{nLine: 3 , nColumn: 17, level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,              text: "8"},
 							{nLine: 3 , nColumn: 18, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: "\t"},
-							{nLine: 3 , nColumn: 21, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "9"},
+							{nLine: 3 , nColumn: 21, level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "9"},
 							{nLine: 3 , nColumn: 22, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: " "},
-							{nLine: 3 , nColumn: 23, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "w"},
+							{nLine: 3 , nColumn: 23, level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "w"},
 							{nLine: 3 , nColumn: 24, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                 text: "="},
-							{nLine: 3 , nColumn: 25, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,              text: "\"L1\\\n\tL2\""},
+							{nLine: 3 , nColumn: 25, level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,              text: "\"L1\\\n\tL2\""},
 							{nLine: 4 , nColumn: 8 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,            text: ">"},
 							{nLine: 4 , nColumn: 9 , level: 1, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                    text: chars},
 							{nLine: 5 , nColumn: 2 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.TAG_CLOSE,               text: "</b>"},
@@ -660,7 +663,7 @@ Deno.test
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "q",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<q"},
 				{nLine: 1,  nColumn: 3,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				{nLine: 1,  nColumn: 4,  level: 1, tagName: "svg",     isSelfClosing: false, isForeign: true,  type: TokenType.TAG_OPEN_BEGIN,               text: "<svg"},
@@ -668,9 +671,9 @@ Deno.test
 				{nLine: 1,  nColumn: 9,  level: 2, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.TEXT,                         text: " "},
 				{nLine: 1,  nColumn: 10, level: 2, tagName: "path",    isSelfClosing: false, isForeign: true,  type: TokenType.TAG_OPEN_BEGIN,               text: "<path"},
 				{nLine: 1,  nColumn: 15, level: 2, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 16, level: 2, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.ATTR_NAME,                    text: "d"},
+				{nLine: 1,  nColumn: 16, level: 2, tagName: "path",    isSelfClosing: false, isForeign: true,  type: TokenType.ATTR_NAME,                    text: "d"},
 				{nLine: 1,  nColumn: 17, level: 2, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 18, level: 2, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.ATTR_VALUE,                   text: "hello"},
+				{nLine: 1,  nColumn: 18, level: 2, tagName: "path",    isSelfClosing: false, isForeign: true,  type: TokenType.ATTR_VALUE,                   text: "hello"},
 				{nLine: 1,  nColumn: 23, level: 2, tagName: "",        isSelfClosing: true,  isForeign: true,  type: TokenType.TAG_OPEN_END,                 text: "/>"},
 				{nLine: 1,  nColumn: 25, level: 2, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.TEXT,                         text: " "},
 				{nLine: 1,  nColumn: 26, level: 1, tagName: "svg",     isSelfClosing: false, isForeign: true,  type: TokenType.TAG_CLOSE,                    text: "</svg>"},
@@ -678,7 +681,7 @@ Deno.test
 				{nLine: 1,  nColumn: 32, level: 0, tagName: "q",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_CLOSE,                    text: "</q>"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -689,14 +692,14 @@ Deno.test
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "q",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<q"},
 				{nLine: 1,  nColumn: 3,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				{nLine: 1,  nColumn: 4,  level: 1, tagName: "svg",     isSelfClosing: false, isForeign: true,  type: TokenType.TAG_OPEN_BEGIN,               text: "<svg"},
 				{nLine: 1,  nColumn: 8,  level: 1, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 9,  level: 1, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.ATTR_NAME,                    text: "width"},
+				{nLine: 1,  nColumn: 9,  level: 1, tagName: "svg",     isSelfClosing: false, isForeign: true,  type: TokenType.ATTR_NAME,                    text: "width"},
 				{nLine: 1,  nColumn: 14, level: 1, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 15, level: 1, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.ATTR_VALUE,                   text: "100"},
+				{nLine: 1,  nColumn: 15, level: 1, tagName: "svg",     isSelfClosing: false, isForeign: true,  type: TokenType.ATTR_VALUE,                   text: "100"},
 				{nLine: 1,  nColumn: 18, level: 1, tagName: "",        isSelfClosing: true,  isForeign: true,  type: TokenType.TAG_OPEN_END,                 text: "/>"},
 				{nLine: 1,  nColumn: 20, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: " "},
 				{nLine: 1,  nColumn: 21, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "</svg>"},
@@ -704,7 +707,7 @@ Deno.test
 				{nLine: 1,  nColumn: 27, level: 0, tagName: "q",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_CLOSE,                    text: "</q>"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -715,7 +718,7 @@ Deno.test
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.COMMENT,                      text: "<!---->"},
 				{nLine: 1,  nColumn: 8,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.COMMENT,                      text: "<!----->"},
 				{nLine: 1,  nColumn: 16, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.COMMENT,                      text: "<!-- ------------------------- -->"},
@@ -724,7 +727,7 @@ Deno.test
 				{nLine: 1,  nColumn: 64, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.COMMENT,                      text: "<!-- <?-->?> -->"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -735,7 +738,7 @@ Deno.test
 		const tokens = [...htmltok(source, {mode: 'xml'})];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.CDATA,                        text: "<![CDATA[]]>"},
 				{nLine: 1,  nColumn: 13, level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.CDATA,                        text: "<![CDATA[[[]]>"},
 				{nLine: 1,  nColumn: 27, level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.CDATA,                        text: "<![CDATA[ ]] ]]>"},
@@ -744,7 +747,7 @@ Deno.test
 				{nLine: 1,  nColumn: 59, level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.CDATA,                        text: "<![CDATA[ <?]]>?> ]]>"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -755,7 +758,7 @@ Deno.test
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "q",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<q"},
 				{nLine: 1,  nColumn: 3,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				{nLine: 1,  nColumn: 4,  level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: " "},
@@ -772,7 +775,7 @@ Deno.test
 				{nLine: 1,  nColumn: 54, level: 0, tagName: "q",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_CLOSE,                    text: "</q>"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -783,17 +786,17 @@ Deno.test
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "<br a1=yes a2=\"yes\"  a1=\"no\" a2=no A2=\"no\">"},
 				{nLine: 1,  nColumn: 1,  level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<br"},
 				{nLine: 1,  nColumn: 4,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a1"},
+				{nLine: 1,  nColumn: 5,  level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a1"},
 				{nLine: 1,  nColumn: 7,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 8,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "yes"},
+				{nLine: 1,  nColumn: 8,  level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "yes"},
 				{nLine: 1,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 12, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a2"},
+				{nLine: 1,  nColumn: 12, level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a2"},
 				{nLine: 1,  nColumn: 14, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"yes\""},
+				{nLine: 1,  nColumn: 15, level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"yes\""},
 				{nLine: 1,  nColumn: 20, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: "  "},
 				{nLine: 1,  nColumn: 22, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK_DUP_ATTR_NAME,           text: "a1"},
 				{nLine: 1,  nColumn: 24, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "=\"no\""},
@@ -806,7 +809,7 @@ Deno.test
 				{nLine: 1,  nColumn: 43, level: 0, tagName: "",        isSelfClosing: true,  isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -817,33 +820,33 @@ Deno.test
 		const tokens = [...htmltok(source, {noCheckAttributes: true})];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "<br a1=yes a2=\"yes\"  a1=\"no\" a2=no A2=\"no\">"},
 				{nLine: 1,  nColumn: 1,  level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<br"},
 				{nLine: 1,  nColumn: 4,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a1"},
+				{nLine: 1,  nColumn: 5,  level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a1"},
 				{nLine: 1,  nColumn: 7,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 8,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "yes"},
+				{nLine: 1,  nColumn: 8,  level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "yes"},
 				{nLine: 1,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 12, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a2"},
+				{nLine: 1,  nColumn: 12, level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a2"},
 				{nLine: 1,  nColumn: 14, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"yes\""},
+				{nLine: 1,  nColumn: 15, level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"yes\""},
 				{nLine: 1,  nColumn: 20, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: "  "},
-				{nLine: 1,  nColumn: 22, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a1"},
+				{nLine: 1,  nColumn: 22, level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a1"},
 				{nLine: 1,  nColumn: 24, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 25, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"no\""},
+				{nLine: 1,  nColumn: 25, level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"no\""},
 				{nLine: 1,  nColumn: 29, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 30, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a2"},
+				{nLine: 1,  nColumn: 30, level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "a2"},
 				{nLine: 1,  nColumn: 32, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 33, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "no"},
+				{nLine: 1,  nColumn: 33, level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "no"},
 				{nLine: 1,  nColumn: 35, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 36, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "A2"},
+				{nLine: 1,  nColumn: 36, level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "A2"},
 				{nLine: 1,  nColumn: 38, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 39, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"no\""},
+				{nLine: 1,  nColumn: 39, level: 0, tagName: "br",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"no\""},
 				{nLine: 1,  nColumn: 43, level: 0, tagName: "",        isSelfClosing: true,  isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -863,7 +866,7 @@ Deno.test
 		const tokens = [...htmltok(source, {mode: 'xml'})];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.DTD,                          text: "<!DOCTYPE address [\n\t<!ELEMENT address (name,company,phone)>\n\t<!ELEMENT name (#PCDATA)>\n\t<!ELEMENT company (#PCDATA)>\n\t<!ELEMENT phone (#PCDATA)>\n]>"},
 				{nLine: 6,  nColumn: 3,  level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.TEXT,                         text: "\n"},
 				{nLine: 7,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.MORE_REQUEST,                 text: "<address/>"},
@@ -871,7 +874,7 @@ Deno.test
 				{nLine: 7,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: true,  isForeign: true,  type: TokenType.TAG_OPEN_END,                 text: "/>"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -888,7 +891,7 @@ Deno.test
 		const tokens = [...htmltok(source, {mode: 'html'})];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "<![ %HTML.Frameset; [\n\t<!ENTITY % MultiLengths \"CDATA\" -- comma-separated list of MultiLength -->\n]]>"},
 				{nLine: 3,  nColumn: 4,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "\n"},
 				{nLine: 4,  nColumn: 1,  level: 0, tagName: "html",    isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<html"},
@@ -897,7 +900,7 @@ Deno.test
 				{nLine: 4,  nColumn: 7,  level: 0, tagName: "html",    isSelfClosing: false, isForeign: false, type: TokenType.TAG_CLOSE,                    text: "</html>"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -909,23 +912,23 @@ Deno.test
 			const tokens = [...htmltok(source, {unquoteAttributes: true})];
 			assertEquals(tokens.join(''), source);
 			assertEquals
-			(	tokens.map(v => Object.assign({}, v)),
+			(	tokens.map(v => Object.assign({} as Any, v)),
 				[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: `<meta name="viewport" content="char${c}">`},
 					{nLine: 1,  nColumn: 1,  level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<meta"},
 					{nLine: 1,  nColumn: 6,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-					{nLine: 1,  nColumn: 7,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "name"},
+					{nLine: 1,  nColumn: 7,  level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "name"},
 					{nLine: 1,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
 					{nLine: 1,  nColumn: 12, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "\""},
-					{nLine: 1,  nColumn: 13, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "viewport"},
+					{nLine: 1,  nColumn: 13, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "viewport"},
 					{nLine: 1,  nColumn: 21, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "\""},
 					{nLine: 1,  nColumn: 22, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-					{nLine: 1,  nColumn: 23, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "content"},
+					{nLine: 1,  nColumn: 23, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "content"},
 					{nLine: 1,  nColumn: 30, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-					{nLine: 1,  nColumn: 31, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: `"char${c}"`},
+					{nLine: 1,  nColumn: 31, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: `"char${c}"`},
 					{nLine: 1,  nColumn: 38, level: 0, tagName: "",        isSelfClosing: true,  isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				]
 			);
-			assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+			assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 		}
 
 		for (const c of ['\r', '\n'])
@@ -933,68 +936,68 @@ Deno.test
 			const tokens = [...htmltok(source, {unquoteAttributes: true})];
 			assertEquals(tokens.join(''), source);
 			assertEquals
-			(	tokens.map(v => Object.assign({}, v)),
+			(	tokens.map(v => Object.assign({} as Any, v)),
 				[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: `<meta name="viewport" content="char${c}">`},
 					{nLine: 1,  nColumn: 1,  level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<meta"},
 					{nLine: 1,  nColumn: 6,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-					{nLine: 1,  nColumn: 7,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "name"},
+					{nLine: 1,  nColumn: 7,  level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "name"},
 					{nLine: 1,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
 					{nLine: 1,  nColumn: 12, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "\""},
-					{nLine: 1,  nColumn: 13, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "viewport"},
+					{nLine: 1,  nColumn: 13, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "viewport"},
 					{nLine: 1,  nColumn: 21, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "\""},
 					{nLine: 1,  nColumn: 22, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-					{nLine: 1,  nColumn: 23, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "content"},
+					{nLine: 1,  nColumn: 23, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "content"},
 					{nLine: 1,  nColumn: 30, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-					{nLine: 1,  nColumn: 31, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: `"char${c}"`},
+					{nLine: 1,  nColumn: 31, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: `"char${c}"`},
 					{nLine: 2,  nColumn: 2,  level: 0, tagName: "",        isSelfClosing: true,  isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 				]
 			);
-			assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+			assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 		}
 
 		let source = `<meta name="viewport" content='char"'>`;
 		let tokens = [...htmltok(source, {unquoteAttributes: true})];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "<meta name=\"viewport\" content='char\"'>"},
 				{nLine: 1,  nColumn: 1,  level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<meta"},
 				{nLine: 1,  nColumn: 6,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 7,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "name"},
+				{nLine: 1,  nColumn: 7,  level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "name"},
 				{nLine: 1,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
 				{nLine: 1,  nColumn: 12, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "\""},
-				{nLine: 1,  nColumn: 13, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "viewport"},
+				{nLine: 1,  nColumn: 13, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "viewport"},
 				{nLine: 1,  nColumn: 21, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "\""},
 				{nLine: 1,  nColumn: 22, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 23, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "content"},
+				{nLine: 1,  nColumn: 23, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "content"},
 				{nLine: 1,  nColumn: 30, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 31, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "'char\"'"},
+				{nLine: 1,  nColumn: 31, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "'char\"'"},
 				{nLine: 1,  nColumn: 38, level: 0, tagName: "",        isSelfClosing: true,  isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 
 		source = `<meta name="viewport" content="char\t">`;
 		tokens = [...htmltok(source, {unquoteAttributes: true})];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "<meta name=\"viewport\" content=\"char\t\">"},
 				{nLine: 1,  nColumn: 1,  level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<meta"},
 				{nLine: 1,  nColumn: 6,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 7,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "name"},
+				{nLine: 1,  nColumn: 7,  level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "name"},
 				{nLine: 1,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
 				{nLine: 1,  nColumn: 12, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "\""},
-				{nLine: 1,  nColumn: 13, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "viewport"},
+				{nLine: 1,  nColumn: 13, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "viewport"},
 				{nLine: 1,  nColumn: 21, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "\""},
 				{nLine: 1,  nColumn: 22, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 23, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "content"},
+				{nLine: 1,  nColumn: 23, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "content"},
 				{nLine: 1,  nColumn: 30, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 31, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"char\t\""},
+				{nLine: 1,  nColumn: 31, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"char\t\""},
 				{nLine: 1,  nColumn: 38, level: 0, tagName: "",        isSelfClosing: true,  isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
@@ -1005,25 +1008,25 @@ Deno.test
 		const tokens = [...htmltok(source, {quoteAttributes: true})];
 		assertEquals(tokens.join(''), source);
 		assertEquals
-		(	tokens.map(v => Object.assign({}, v)),
+		(	tokens.map(v => Object.assign({} as Any, v)),
 			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "<meta name=viewport content=width=device-width,initial-scale=1.0>"},
 				{nLine: 1,  nColumn: 1,  level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<meta"},
 				{nLine: 1,  nColumn: 6,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 7,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "name"},
+				{nLine: 1,  nColumn: 7,  level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "name"},
 				{nLine: 1,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
 				{nLine: 1,  nColumn: 12, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_ATTR_QUOT,      text: "\""},
-				{nLine: 1,  nColumn: 12, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "viewport"},
+				{nLine: 1,  nColumn: 12, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "viewport"},
 				{nLine: 1,  nColumn: 12, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_ATTR_QUOT,      text: "\""},
 				{nLine: 1,  nColumn: 20, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
-				{nLine: 1,  nColumn: 21, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "content"},
+				{nLine: 1,  nColumn: 21, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "content"},
 				{nLine: 1,  nColumn: 28, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
 				{nLine: 1,  nColumn: 29, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_ATTR_QUOT,      text: "\""},
-				{nLine: 1,  nColumn: 29, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "width=device-width,initial-scale=1.0"},
+				{nLine: 1,  nColumn: 29, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "width=device-width,initial-scale=1.0"},
 				{nLine: 1,  nColumn: 29, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_ATTR_QUOT,      text: "\""},
 				{nLine: 1,  nColumn: 65, level: 0, tagName: "",        isSelfClosing: true,  isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
 			]
 		);
-		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({}, v)));
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
 
