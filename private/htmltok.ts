@@ -1,9 +1,4 @@
-import {CharsReader} from "./chars_reader.ts";
-import {htmlDecode} from "./entities.ts";
-
-const BUFFER_SIZE = 16*1024;
-
-const defaultDecoder = new TextDecoder;
+import {htmlDecode} from './entities.ts';
 
 const TAGS_VOID = new Set(['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'menuitem', 'meta', 'param', 'source', 'track', 'wbr']);
 const TAGS_NON_STRUCTURE = new Set(['b', 'strong', 'i', 'u', 's', 'strike', 'small', 'big', 'nobr']);
@@ -630,84 +625,5 @@ L:										for (let j=i+1, jEnd=iAfterValue-1; j<jEnd; j++)
 	for (let pos=hierarchy.length-1; pos>=0; pos--)
 	{	const t = hierarchy[pos];
 		yield new Token(`</${t}>`, TokenType.FIX_STRUCTURE_TAG_CLOSE, nLine, nColumn, pos, t, false, foreignLevel!=-1);
-	}
-}
-
-/**	Returns async iterator over HTML tokens found in source code.
-	`nLine` and `nColumn` - will start counting lines from these initial values.
-	`decoder` will use it to convert bytes to text. This function only supports "utf-8", "utf-16le", "utf-16be" and all 1-byte encodings (not "big5", etc.).
- **/
-export async function *htmltokReader(source: Deno.Reader, settings: Settings={}, hierarchy: string[]=[], tabWidth=4, nLine=1, nColumn=1, decoder=defaultDecoder): AsyncGenerator<Token, void>
-{	const reader = new CharsReader(source, decoder.encoding);
-	const buffer = new Uint8Array(BUFFER_SIZE);
-	let part = await reader.readChars(buffer);
-	if (part != null)
-	{	const it = htmltok(part, settings, hierarchy, tabWidth, nLine, nColumn);
-		while (true)
-		{	let {value} = it.next();
-			if (!value)
-			{	return;
-			}
-			while (value.type == TokenType.MORE_REQUEST)
-			{	part = await reader.readChars(buffer);
-				if (part != null)
-				{	value = it.next(part).value;
-					if (!value)
-					{	return; // must not happen
-					}
-				}
-				else
-				{	value = it.next().value;
-					if (!value)
-					{	return; // must not happen
-					}
-					break;
-				}
-			}
-			yield value;
-		}
-	}
-}
-
-/**	Like `htmltokReader()`, but buffers tokens in array, and yields this array periodically.
-	This is to avoid creating and awaiting Promises for each Token in the code.
- **/
-export async function *htmltokReaderArray(source: Deno.Reader, settings: Settings={}, hierarchy: string[]=[], tabWidth=4, nLine=1, nColumn=1, decoder=defaultDecoder): AsyncGenerator<Token[], void>
-{	const reader = new CharsReader(source, decoder.encoding);
-	const buffer = new Uint8Array(BUFFER_SIZE);
-	let part = await reader.readChars(buffer);
-	if (part != null)
-	{	const it = htmltok(part, settings, hierarchy, tabWidth, nLine, nColumn);
-		let tokensBuffer = [];
-		while (true)
-		{	let {value} = it.next();
-			if (!value)
-			{	break;
-			}
-			while (value.type == TokenType.MORE_REQUEST)
-			{	if (tokensBuffer.length)
-				{	yield tokensBuffer;
-					tokensBuffer = [];
-				}
-				part = await reader.readChars(buffer);
-				if (part != null)
-				{	value = it.next(part).value;
-					if (!value)
-					{	return; // must not happen
-					}
-				}
-				else
-				{	value = it.next().value;
-					if (!value)
-					{	return; // must not happen
-					}
-					break;
-				}
-			}
-			tokensBuffer[tokensBuffer.length] = value;
-		}
-		if (tokensBuffer.length)
-		{	yield tokensBuffer;
-		}
 	}
 }

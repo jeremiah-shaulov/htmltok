@@ -1,40 +1,59 @@
-import {htmltok, htmltokReader, htmltokReaderArray, Token, TokenType} from "../htmltok.ts";
-import {assertEquals} from "https://deno.land/std@0.167.0/testing/asserts.ts";
+import {htmltok, Token, TokenType} from '../htmltok.ts';
+import {htmltokStream, htmltokStreamArray} from '../htmltok_stream.ts';
+import {assertEquals} from 'jsr:@std/assert@1.0.7/equals';
 
 // deno-lint-ignore no-explicit-any
 type Any = any;
 
-class StringReader
-{	private data: Uint8Array;
-	private pos = 0;
-	private state = 0;
+function stringReader(str: string, isByob=false, chunkSize=10, encoding='utf-8')
+{	let data: Uint8Array;
+	let pos = 0;
 
-	constructor(str: string, private chunkSize=10, encoding='utf-8')
-	{	if (encoding == 'utf-16le')
-		{	this.data = encodeToUtf16(str, true);
-		}
-		else if (encoding == 'utf-16be')
-		{	this.data = encodeToUtf16(str, false);
-		}
-		else
-		{	this.data = new TextEncoder().encode(str);
-		}
+	if (encoding == 'utf-16le')
+	{	data = encodeToUtf16(str, true);
+	}
+	else if (encoding == 'utf-16be')
+	{	data = encodeToUtf16(str, false);
+	}
+	else
+	{	data = new TextEncoder().encode(str);
 	}
 
-	read(buffer: Uint8Array)
-	{	let result: number|null = null;
-		if (this.pos < this.data.length)
-		{	if (this.state++ % 10 == 0)
-			{	result = 0;
+	if (!isByob)
+	{	return new ReadableStream
+		(	{	pull(controller)
+				{	const chunk = data.subarray(pos, pos+Math.min(chunkSize, data.length-pos));
+					pos += chunk.length;
+					controller.enqueue(chunk);
+					if (pos >= data.length)
+					{	controller.close();
+					}
+				}
 			}
-			else
-			{	const chunk = this.data.subarray(this.pos, this.pos+Math.min(this.chunkSize, this.data.length-this.pos, buffer.length));
-				buffer.set(chunk, 0);
-				this.pos += chunk.length;
-				result = chunk.length;
+		);
+	}
+	else
+	{	return new ReadableStream
+		(	{	type: 'bytes',
+				pull(controller)
+				{	const view = controller.byobRequest?.view;
+					if (!view)
+					{	const chunk = data.subarray(pos, pos+Math.min(chunkSize, data.length-pos));
+						pos += chunk.length;
+						controller.enqueue(chunk);
+					}
+					else
+					{	const chunk = data.subarray(pos, pos+Math.min(chunkSize, data.length-pos, view.byteLength));
+						pos += chunk.length;
+						new Uint8Array(view.buffer, view.byteOffset, view.byteLength).set(chunk, 0);
+						controller.byobRequest.respond(chunk.length);
+					}
+					if (pos >= data.length)
+					{	controller.close();
+					}
+				}
 			}
-		}
-		return Promise.resolve(result);
+		);
 	}
 }
 
@@ -602,54 +621,56 @@ Deno.test
 	{	for (const encoding of ['utf-8', 'utf-16le', 'utf-16be', 'windows-1252'])
 		{	for (let chunkSize=1; chunkSize<90; chunkSize++)
 			{	for (const isArray of [false, true])
-				{	const chars = encoding=='windows-1252' ? `Abc\nd` : `Aф៘\n😀`;
-					const source = new StringReader(`<b v="${chars}" A="\r\n" 3\t45\t6\t7=\t8\t9 w="L1\\\n\tL2">${chars}</b>`, chunkSize, encoding);
-					const tokens = [];
-					if (!isArray)
-					{	for await (const token of htmltokReader(source, {}, [], 4, 1, 1, new TextDecoder(encoding)))
-						{	tokens.push(token);
-						}
-					}
-					else
-					{	for await (const tt of htmltokReaderArray(source, {}, [], 4, 1, 1, new TextDecoder(encoding)))
-						{	for (const token of tt)
+				{	for (const isByob of [false, true])
+					{	const chars = encoding=='windows-1252' ? `Abc\nd` : `Aф៘\n😀`;
+						const source = stringReader(`<b v="${chars}" A="\r\n" 3\t45\t6\t7=\t8\t9 w="L1\\\n\tL2">${chars}</b>`, isByob, chunkSize, encoding);
+						const tokens = [];
+						if (!isArray)
+						{	for await (const token of htmltokStream(source, {}, [], 4, 1, 1, new TextDecoder(encoding)))
 							{	tokens.push(token);
 							}
 						}
+						else
+						{	for await (const tt of htmltokStreamArray(source, {}, [], 4, 1, 1, new TextDecoder(encoding)))
+							{	for (const token of tt)
+								{	tokens.push(token);
+								}
+							}
+						}
+						assertEquals
+						(	tokens.map(v => Object.assign({} as Any, v)),
+							[	{nLine: 1 , nColumn: 1 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,          text: "<b"},
+								{nLine: 1 , nColumn: 3 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: " "},
+								{nLine: 1 , nColumn: 4 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "v"},
+								{nLine: 1 , nColumn: 5 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                 text: "="},
+								{nLine: 1 , nColumn: 6 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,              text: `"${chars}"`},
+								{nLine: 2 , nColumn: 3 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: " "},
+								{nLine: 2 , nColumn: 4 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "A"},
+								{nLine: 2 , nColumn: 5 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                 text: "="},
+								{nLine: 2 , nColumn: 6 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,              text: "\"\r\n\""},
+								{nLine: 3 , nColumn: 2 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: " "},
+								{nLine: 3 , nColumn: 3 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "3"},
+								{nLine: 3 , nColumn: 4 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: "\t"},
+								{nLine: 3 , nColumn: 5 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "45"},
+								{nLine: 3 , nColumn: 7 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: "\t"},
+								{nLine: 3 , nColumn: 9 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "6"},
+								{nLine: 3 , nColumn: 10, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: "\t"},
+								{nLine: 3 , nColumn: 13, level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "7"},
+								{nLine: 3 , nColumn: 14, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                 text: "="},
+								{nLine: 3 , nColumn: 15, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: "\t"},
+								{nLine: 3 , nColumn: 17, level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,              text: "8"},
+								{nLine: 3 , nColumn: 18, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: "\t"},
+								{nLine: 3 , nColumn: 21, level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "9"},
+								{nLine: 3 , nColumn: 22, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: " "},
+								{nLine: 3 , nColumn: 23, level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "w"},
+								{nLine: 3 , nColumn: 24, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                 text: "="},
+								{nLine: 3 , nColumn: 25, level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,              text: "\"L1\\\n\tL2\""},
+								{nLine: 4 , nColumn: 8 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,            text: ">"},
+								{nLine: 4 , nColumn: 9 , level: 1, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                    text: chars},
+								{nLine: 5 , nColumn: 2 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.TAG_CLOSE,               text: "</b>"},
+							]
+						);
 					}
-					assertEquals
-					(	tokens.map(v => Object.assign({} as Any, v)),
-						[	{nLine: 1 , nColumn: 1 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,          text: "<b"},
-							{nLine: 1 , nColumn: 3 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: " "},
-							{nLine: 1 , nColumn: 4 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "v"},
-							{nLine: 1 , nColumn: 5 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                 text: "="},
-							{nLine: 1 , nColumn: 6 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,              text: `"${chars}"`},
-							{nLine: 2 , nColumn: 3 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: " "},
-							{nLine: 2 , nColumn: 4 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "A"},
-							{nLine: 2 , nColumn: 5 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                 text: "="},
-							{nLine: 2 , nColumn: 6 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,              text: "\"\r\n\""},
-							{nLine: 3 , nColumn: 2 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: " "},
-							{nLine: 3 , nColumn: 3 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "3"},
-							{nLine: 3 , nColumn: 4 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: "\t"},
-							{nLine: 3 , nColumn: 5 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "45"},
-							{nLine: 3 , nColumn: 7 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: "\t"},
-							{nLine: 3 , nColumn: 9 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "6"},
-							{nLine: 3 , nColumn: 10, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: "\t"},
-							{nLine: 3 , nColumn: 13, level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "7"},
-							{nLine: 3 , nColumn: 14, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                 text: "="},
-							{nLine: 3 , nColumn: 15, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: "\t"},
-							{nLine: 3 , nColumn: 17, level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,              text: "8"},
-							{nLine: 3 , nColumn: 18, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: "\t"},
-							{nLine: 3 , nColumn: 21, level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "9"},
-							{nLine: 3 , nColumn: 22, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,          text: " "},
-							{nLine: 3 , nColumn: 23, level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,               text: "w"},
-							{nLine: 3 , nColumn: 24, level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                 text: "="},
-							{nLine: 3 , nColumn: 25, level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,              text: "\"L1\\\n\tL2\""},
-							{nLine: 4 , nColumn: 8 , level: 0, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,            text: ">"},
-							{nLine: 4 , nColumn: 9 , level: 1, tagName: "",       isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                    text: chars},
-							{nLine: 5 , nColumn: 2 , level: 0, tagName: "b",      isSelfClosing: false, isForeign: false, type: TokenType.TAG_CLOSE,               text: "</b>"},
-						]
-					);
 				}
 			}
 		}
