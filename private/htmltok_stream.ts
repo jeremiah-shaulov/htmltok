@@ -24,7 +24,7 @@ export async function *htmltokStream(source: ReadableStream<Uint8Array>, setting
 	}
 }
 
-/**	Like `htmltokReader()`, but buffers tokens in array, and yields this array periodically.
+/**	Like `htmltokStream()`, but buffers tokens in array, and yields this array periodically.
 	This is to avoid creating and awaiting Promises for each Token in the code.
 	**/
 export async function *htmltokStreamArray(source: ReadableStream<Uint8Array>, settings: Settings={}, hierarchy: string[]=[], tabWidth=4, nLine=1, nColumn=1, decoder=defaultDecoder): AsyncGenerator<Token[], void>
