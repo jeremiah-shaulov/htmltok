@@ -1,6 +1,6 @@
 <!--
 	This file is generated with the following command:
-	deno run --allow-all https://raw.githubusercontent.com/jeremiah-shaulov/tsa/v0.0.48/tsa.ts doc-md --outFile=README.md mod.ts --outUrl https://raw.githubusercontent.com/jeremiah-shaulov/htmltok/v2.0.0/README.md --importUrl https://deno.land/x/htmltok@v2.0.0/mod.ts
+	deno run --allow-all https://raw.githubusercontent.com/jeremiah-shaulov/tsa/v0.0.49/tsa.ts doc-md --outFile=README.md --outUrl=https://raw.githubusercontent.com/jeremiah-shaulov/htmltok/v2.0.0/README.md --importUrl=https://deno.land/x/htmltok@v2.0.0/mod.ts mod.ts
 -->
 
 # htmltok - HTML and XML tokenizer and normalizer
@@ -25,6 +25,7 @@ It can be used to convert HTML to canonical form.
 // deno run /tmp/example-p9mn.ts
 
 import {htmltok, TokenType} from 'https://deno.land/x/htmltok@v2.0.0/mod.ts';
+import {assertEquals} from 'jsr:@std/assert@1.0.7/equals';
 
 const source =
 `	<meta name=viewport content="width=device-width, initial-scale=1.0">
@@ -32,8 +33,36 @@ const source =
 		Text.
 	</div>
 `;
+
+assertEquals
+(	[...htmltok(source)].map(v => Object.assign<Record<never, never>, unknown>({}, v)),
+	[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "\t"},
+		{nLine: 1,  nColumn: 5,  level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<meta"},
+		{nLine: 1,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
+		{nLine: 1,  nColumn: 11, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "name"},
+		{nLine: 1,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
+		{nLine: 1,  nColumn: 16, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "viewport"},
+		{nLine: 1,  nColumn: 24, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
+		{nLine: 1,  nColumn: 25, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "content"},
+		{nLine: 1,  nColumn: 32, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
+		{nLine: 1,  nColumn: 33, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"width=device-width, initial-scale=1.0\""},
+		{nLine: 1,  nColumn: 72, level: 0, tagName: "",        isSelfClosing: true,  isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
+		{nLine: 1,  nColumn: 73, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "\n\t"},
+		{nLine: 2,  nColumn: 5,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<div"},
+		{nLine: 2,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
+		{nLine: 2,  nColumn: 10, level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "title"},
+		{nLine: 2,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
+		{nLine: 2,  nColumn: 16, level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"&quot;Title&quot;\""},
+		{nLine: 2,  nColumn: 35, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
+		{nLine: 2,  nColumn: 36, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "\n\t\tText.\n\t"},
+		{nLine: 4,  nColumn: 5,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.TAG_CLOSE,                    text: "</div>"},
+		{nLine: 4,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "\n"},
+		{nLine: 4,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "\n"},
+	]
+);
+
 for (const token of htmltok(source))
-{	console.log(token.debug());
+{	//console.log(token.debug());
 	if (token.type == TokenType.ATTR_VALUE)
 	{	console.log(`Attribute value: ${token.getValue()}`);
 	}
@@ -42,32 +71,10 @@ for (const token of htmltok(source))
 
 Prints:
 
-```javascript
-{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "\t"}
-{nLine: 1,  nColumn: 5,  level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<meta"}
-{nLine: 1,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "}
-{nLine: 1,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "name"}
-{nLine: 1,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="}
-{nLine: 1,  nColumn: 16, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "viewport"}
+```ts
 Attribute value: viewport
-{nLine: 1,  nColumn: 24, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "}
-{nLine: 1,  nColumn: 25, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "content"}
-{nLine: 1,  nColumn: 32, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="}
-{nLine: 1,  nColumn: 33, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"width=device-width, initial-scale=1.0\""}
 Attribute value: width=device-width, initial-scale=1.0
-{nLine: 1,  nColumn: 72, level: 0, tagName: "",        isSelfClosing: true,  isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"}
-{nLine: 1,  nColumn: 73, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "\n\t"}
-{nLine: 2,  nColumn: 5,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<div"}
-{nLine: 2,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "}
-{nLine: 2,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "title"}
-{nLine: 2,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="}
-{nLine: 2,  nColumn: 16, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "\"&quot;Title&quot;\""}
 Attribute value: "Title"
-{nLine: 2,  nColumn: 35, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"}
-{nLine: 2,  nColumn: 36, level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "\n\t\tText.\n\t"}
-{nLine: 4,  nColumn: 5,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.TAG_CLOSE,                    text: "</div>"}
-{nLine: 4,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "\n"}
-{nLine: 4,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "\n"}
 ```
 
 ## htmltok() - Tokenize string
