@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {htmltokStream} from "https://deno.land/x/htmltok@v2.0.0/mod.ts"
+import {htmltokStream} from "https://deno.land/x/htmltok@v2.0.1/mod.ts"
 ```
 
 `function` htmltokStream(source: ReadableStream\<Uint8Array>, settings: [Settings](../interface.Settings/README.md)=\{}, hierarchy: `string`\[]=\[], tabWidth: `number`=4, nLine: `number`=1, nColumn: `number`=1, decoder: TextDecoder=defaultDecoder): AsyncGenerator\<[Token](../class.Token/README.md), `void`, `any`>

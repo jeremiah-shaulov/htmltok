@@ -1,6 +1,6 @@
 <!--
 	This file is generated with the following command:
-	deno run --allow-all https://raw.githubusercontent.com/jeremiah-shaulov/tsa/v0.0.49/tsa.ts doc-md --outFile=README.md --outUrl=https://raw.githubusercontent.com/jeremiah-shaulov/htmltok/v2.0.0/README.md --importUrl=https://deno.land/x/htmltok@v2.0.0/mod.ts mod.ts
+	deno run --allow-all https://raw.githubusercontent.com/jeremiah-shaulov/tsa/v0.0.49/tsa.ts doc-md --outFile=README.md --outUrl=https://raw.githubusercontent.com/jeremiah-shaulov/htmltok/v2.0.1/README.md --importUrl=https://deno.land/x/htmltok@v2.0.1/mod.ts mod.ts
 -->
 
 # htmltok - HTML and XML tokenizer and normalizer
@@ -21,10 +21,10 @@ It can be used to convert HTML to canonical form.
 
 ```ts
 // To download and run this example:
-// curl 'https://raw.githubusercontent.com/jeremiah-shaulov/htmltok/v2.0.0/README.md' | perl -ne '$y=$1 if /^```(.)?/;  print $_ if $y&&$m;  $m=$y&&($m||m~<example-p9mn>~)' > /tmp/example-p9mn.ts
+// curl 'https://raw.githubusercontent.com/jeremiah-shaulov/htmltok/v2.0.1/README.md' | perl -ne '$y=$1 if /^```(.)?/;  print $_ if $y&&$m;  $m=$y&&($m||m~<example-p9mn>~)' > /tmp/example-p9mn.ts
 // deno run /tmp/example-p9mn.ts
 
-import {htmltok, TokenType} from 'https://deno.land/x/htmltok@v2.0.0/mod.ts';
+import {htmltok, TokenType} from 'https://deno.land/x/htmltok@v2.0.1/mod.ts';
 import {assertEquals} from 'jsr:@std/assert@1.0.7/equals';
 
 const source =
@@ -100,10 +100,10 @@ In this case this code will be appended to the last token, and the tokenization 
 
 ```ts
 // To download and run this example:
-// curl 'https://raw.githubusercontent.com/jeremiah-shaulov/htmltok/v2.0.0/README.md' | perl -ne '$y=$1 if /^```(.)?/;  print $_ if $y&&$m;  $m=$y&&($m||m~<example-65ya>~)' > /tmp/example-65ya.ts
+// curl 'https://raw.githubusercontent.com/jeremiah-shaulov/htmltok/v2.0.1/README.md' | perl -ne '$y=$1 if /^```(.)?/;  print $_ if $y&&$m;  $m=$y&&($m||m~<example-65ya>~)' > /tmp/example-65ya.ts
 // deno run /tmp/example-65ya.ts
 
-import {htmltok, TokenType} from 'https://deno.land/x/htmltok@v2.0.0/mod.ts';
+import {htmltok, TokenType} from 'https://deno.land/x/htmltok@v2.0.1/mod.ts';
 
 let source =
 `	<meta name=viewport content="width=device-width, initial-scale=1.0">
@@ -260,7 +260,7 @@ L:while ((token = it.next().value))
 [htmltok()](generated-doc/function.htmltok/README.md) can be used to normalize HTML, that is, to fix markup errors. This includes closing unclosed tags, quoting attributes (in XML or if [Settings.quoteAttributes](generated-doc/interface.Settings/README.md#-quoteattributes-boolean) is set), etc.
 
 ```ts
-import {htmltok} from 'https://deno.land/x/htmltok@v2.0.0/mod.ts';
+import {htmltok} from 'https://deno.land/x/htmltok@v2.0.1/mod.ts';
 
 const html = `<a target=_blank>Click here`;
 const normalHtml = [...htmltok(html, {quoteAttributes: true})].map(t => t.normalized()).join('');
@@ -304,7 +304,7 @@ It never generates [TokenType.MORE\_REQUEST](generated-doc/enum.TokenType/README
 If `decoder` is provided, will use it to convert bytes to text.
 
 ```ts
-import {htmltokReader} from 'https://deno.land/x/htmltok@v2.0.0/mod.ts';
+import {htmltokReader} from 'https://deno.land/x/htmltok@v2.0.1/mod.ts';
 import {readerFromStreamReader} from 'https://deno.land/std@0.167.0/streams/reader_from_stream_reader.ts';
 
 const res = await fetch("https://example.com/");
@@ -322,7 +322,7 @@ This function decodes entities (character references), like `&apos;`, `&#39;` or
 If `skipPi` is `true`, it will operate only on parts between preprocessing instructions.
 
 ```ts
-import {htmlDecode} from 'https://deno.land/x/htmltok@v2.0.0/mod.ts';
+import {htmlDecode} from 'https://deno.land/x/htmltok@v2.0.1/mod.ts';
 
 console.log(htmlDecode(`Text&amp;text<?&amp;?>text`)); // prints: Text&text<?&?>text
 console.log(htmlDecode(`Text&amp;text<?&amp;?>text`, true)); // prints: Text&text<?&amp;?>text
