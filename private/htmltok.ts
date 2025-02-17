@@ -6,7 +6,7 @@ const TAGS_NON_STRUCTURE = new Set(['b', 'strong', 'i', 'u', 's', 'strike', 'sma
 const STR_PP = String.raw `<\?  .*?  (?:$ | \?>)`;
 const STR_ATTRS = String.raw `(?:    "(?:<\?.*?\?> | [^"])*"  |  '(?:<\?.*?\?> | [^'])*'  |  <\?.*?\?>  |  [^>]    )*`;
 const STR_DTD = String.raw `(?:    "(?:<\?.*?\?> | [^"])*"  |  '(?:<\?.*?\?> | [^'])*'  |  <\?.*?\?>  |  -- (?:(?:<\?.*?\?> | [^-])* -(?!-))* (?:<\?.*?\?> | [^-])* --  |  \[ (?:<\?.*?\?> | [^\]])* \]  |  [^>]    )*`;
-const STR_ENTITY = String.raw `&  (?:[a-z0-9] | <\?.*?\?>){1,32}  (?:$ | ;)`;
+const STR_ENTITY = String.raw `&  #?  (?:[a-z0-9] | <\?.*?\?>){1,32}  (?:$ | ;)`;
 
 const RE_TOKENIZER = new RegExp
 (	String.raw
