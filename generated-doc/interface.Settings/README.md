@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {Settings} from "https://deno.land/x/htmltok@v2.0.2/mod.ts"
+import {Settings} from "https://deno.land/x/htmltok@v2.1.0/mod.ts"
 ```
 
 ## This interface has
