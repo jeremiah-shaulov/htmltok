@@ -3,14 +3,17 @@ import {htmltok, Settings, Token, TokenType} from './htmltok.ts';
 const BUFFER_SIZE = 16*1024;
 
 const EMPTY_BUFFER = new Uint8Array;
-const defaultDecoder = new TextDecoder;
+
+type Reader =
+{	read(p: Uint8Array): Promise<number | null>;
+};
 
 /**	Returns async iterator over HTML tokens found in source code.
 	`nLine` and `nColumn` - will start counting lines from these initial values.
 	`decoder` will use it to convert bytes to text. This function only supports "utf-8", "utf-16le", "utf-16be" and all 1-byte encodings (not "big5", etc.).
  **/
-export async function *htmltokStream(source: ReadableStream<Uint8Array>, settings: Settings={}, hierarchy: string[]=[], tabWidth=4, nLine=1, nColumn=1, decoder=defaultDecoder): AsyncGenerator<Token, void>
-{	using reader = new TextReader(source, decoder);
+export async function *htmltokStream(source: ReadableStream<Uint8Array>|Reader, settings: Settings={}, hierarchy: string[]=[], tabWidth=4, nLine=1, nColumn=1, decoder=new TextDecoder): AsyncGenerator<Token, void>
+{	using reader = 'getReader' in source ? new StrReaderFromStream(source, decoder) : new StrReaderFromReader(source, decoder);
 	const it = htmltok(await reader.read(), settings, hierarchy, tabWidth, nLine, nColumn);
 	let token;
 	while ((token = it.next().value))
@@ -27,8 +30,8 @@ export async function *htmltokStream(source: ReadableStream<Uint8Array>, setting
 /**	Like `htmltokStream()`, but buffers tokens in array, and yields this array periodically.
 	This is to avoid creating and awaiting Promises for each Token in the code.
 	**/
-export async function *htmltokStreamArray(source: ReadableStream<Uint8Array>, settings: Settings={}, hierarchy: string[]=[], tabWidth=4, nLine=1, nColumn=1, decoder=defaultDecoder): AsyncGenerator<Token[], void>
-{	using reader = new TextReader(source, decoder);
+export async function *htmltokStreamArray(source: ReadableStream<Uint8Array>|Reader, settings: Settings={}, hierarchy: string[]=[], tabWidth=4, nLine=1, nColumn=1, decoder=new TextDecoder): AsyncGenerator<Token[], void>
+{	using reader = 'getReader' in source ? new StrReaderFromStream(source, decoder) : new StrReaderFromReader(source, decoder);
 	const it = htmltok(await reader.read(), settings, hierarchy, tabWidth, nLine, nColumn);
 	let tokensBuffer = new Array<Token>;
 	let token;
@@ -50,7 +53,7 @@ export async function *htmltokStreamArray(source: ReadableStream<Uint8Array>, se
 	}
 }
 
-class TextReader
+class StrReaderFromStream
 {	#reader: ReadableStreamDefaultReader<Uint8Array>|undefined;
 	#readerByob: ReadableStreamBYOBReader|undefined;
 	#decoder: TextDecoder;
@@ -101,5 +104,36 @@ class TextReader
 	{	this.#decoder.decode(EMPTY_BUFFER); // Clear state (deno requires it)
 		this.#reader?.releaseLock();
 		this.#readerByob?.releaseLock();
+	}
+}
+
+class StrReaderFromReader
+{	#reader;
+	#decoder: TextDecoder;
+	#buffer = new Uint8Array(BUFFER_SIZE);
+
+	constructor(reader: Reader, decoder: TextDecoder)
+	{	this.#reader = reader;
+		this.#decoder = decoder;
+	}
+
+	async read()
+	{	const reader = this.#reader;
+		const decoder = this.#decoder;
+		const buffer = this.#buffer;
+		while (true)
+		{	const n = await reader.read(buffer);
+			if (!n)
+			{	return '';
+			}
+			const text = decoder.decode(buffer.subarray(0, n), {stream: true});
+			if (text.length)
+			{	return text;
+			}
+		}
+	}
+
+	[Symbol.dispose]()
+	{	this.#decoder.decode(EMPTY_BUFFER); // Clear state (deno requires it)
 	}
 }

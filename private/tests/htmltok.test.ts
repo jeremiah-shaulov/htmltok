@@ -1,11 +1,11 @@
 import {htmltok, Token, TokenType} from '../htmltok.ts';
 import {htmltokStream, htmltokStreamArray} from '../htmltok_stream.ts';
-import {assertEquals} from 'jsr:@std/assert@1.0.7/equals';
+import {assertEquals} from 'jsr:@std/assert@1.0.14/equals';
 
 // deno-lint-ignore no-explicit-any
 type Any = any;
 
-function stringReader(str: string, isByob=false, chunkSize=10, encoding='utf-8')
+function stringReader(str: string, isByob: boolean|null=false, chunkSize=10, encoding='utf-8')
 {	let data: Uint8Array;
 	let pos = 0;
 
@@ -19,7 +19,22 @@ function stringReader(str: string, isByob=false, chunkSize=10, encoding='utf-8')
 	{	data = new TextEncoder().encode(str);
 	}
 
-	if (!isByob)
+	if (isByob === null)
+	{	const reader =
+		{	// deno-lint-ignore require-await
+			async read(p: Uint8Array): Promise<number|null>
+			{	if (pos >= data.length)
+				{	return null;
+				}
+				const chunk = data.subarray(pos, pos+Math.min(chunkSize, data.length-pos));
+				p.set(chunk, 0);
+				pos += chunk.length;
+				return chunk.length;
+			}
+		};
+		return reader;
+	}
+	else if (!isByob)
 	{	return new ReadableStream
 		(	{	pull(controller)
 				{	const chunk = data.subarray(pos, pos+Math.min(chunkSize, data.length-pos));
@@ -621,7 +636,7 @@ Deno.test
 	{	for (const encoding of ['utf-8', 'utf-16le', 'utf-16be', 'windows-1252'])
 		{	for (let chunkSize=1; chunkSize<90; chunkSize++)
 			{	for (const isArray of [false, true])
-				{	for (const isByob of [false, true])
+				{	for (const isByob of [null, false, true])
 					{	const chars = encoding=='windows-1252' ? `Abc\nd` : `Aф៘\n😀`;
 						const source = stringReader(`<b v="${chars}" A="\r\n" 3\t45\t6\t7=\t8\t9 w="L1\\\n\tL2">${chars}</b>`, isByob, chunkSize, encoding);
 						const tokens = [];
