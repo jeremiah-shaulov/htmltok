@@ -173,7 +173,7 @@ export interface Settings
 		Some tokens are splittable (are returned by parts), like comments, CDATA sections, and text, so this setting doesn't apply to them.
 		Unsplitable tokens include: attribute names, attribute values and DTD.
 
-		@default 16 KiB
+		@default 16384 characters
 	 **/
 	maxTokenLength?: number;
 }
@@ -502,7 +502,7 @@ function pad(str: string, width: number)
 {	return str + PADDER.substring(0, width-str.length);
 }
 
-export function *htmltok(source: string, settings: Settings={}, hierarchy: string[]=[], tabWidth=4, nLine=1, nColumn=1): Generator<Token, void, string|undefined>
+export function *htmltok(source: string, settings: Settings={}, hierarchy=new Array<string>, tabWidth=4, nLine=1, nColumn=1): Generator<Token, void, string|undefined>
 {	function countLines(text: string, from: number, to: number)
 	{	while (from < to)
 		{	const c = text.charCodeAt(from++);
@@ -547,7 +547,7 @@ L:	while (true)
 		// Is last token?
 		if (lastIndex == source.length)
 		{	if (text.length >= maxTokenLength)
-			{	throw new Error(`Token exceeds the maximum length of ${maxTokenLength}: ${text.slice(0, 100)}...`);
+			{	throw new Error(`Token exceeds the maximum length of ${maxTokenLength} characters: ${text.slice(0, 100)}...`);
 			}
 
 			// MORE_REQUEST?
@@ -568,92 +568,35 @@ L:	while (true)
 					{	if (text.charCodeAt(text.length-1) != qt)
 						{	yield new Token(text, TokenType.JUNK, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
 							countLines(text, 0, text.length);
-							yield new Token('>', TokenType.FIX_STRUCTURE_TAG_OPEN_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
 							break L;
 						}
 					}
 					break;
 				}
-				case State.COMMENT:
-				{	if (!text.endsWith('-->'))
-					{	const cut = text.charCodeAt(text.length-1)!=C_MINUS ? 0 : text.charCodeAt(text.length-2)!=C_MINUS ? 1 : 2;
-						yield new Token(text.slice(0, text.length-cut), TokenType.COMMENT_MID, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-						countLines(text, 0, text.length-cut);
-						yield new Token('-->', TokenType.FIX_STRUCTURE_COMMENT_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-						break L;
-					}
-					break;
-				}
-				case State.CDATA:
-				{	if (!text.endsWith(']]>'))
-					{	const cut = text.charCodeAt(text.length-1)!=C_SQUARE_CLOSE ? 0 : text.charCodeAt(text.length-2)!=C_SQUARE_CLOSE ? 1 : 2;
-						yield new Token(text.slice(0, text.length-cut), TokenType.CDATA_MID, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-						countLines(text, 0, text.length-cut);
-						yield new Token(']]>', TokenType.FIX_STRUCTURE_CDATA_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-						break L;
-					}
-					break;
-				}
-				case State.CDATA_JUNK:
-				{	if (!text.endsWith(']]>'))
-					{	const cut = text.charCodeAt(text.length-1)!=C_SQUARE_CLOSE ? 0 : text.charCodeAt(text.length-2)!=C_SQUARE_CLOSE ? 1 : 2;
-						yield new Token(text.slice(0, text.length-cut), TokenType.JUNK, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-						countLines(text, 0, text.length-cut);
-						break L;
-					}
-					break;
-				}
-				case State.PI:
-				{	const cut = text.charCodeAt(text.length-1)!=C_QEST ? 0 : 1;
-					yield new Token(text.slice(0, text.length-cut), TokenType.PI_MID, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					countLines(text, 0, text.length-cut);
-					yield new Token('?>', TokenType.FIX_STRUCTURE_PI_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					break L;
-				}
-				case State.COMMENT_PI:
-				{	const cut = text.charCodeAt(text.length-1)!=C_QEST ? 0 : 1;
-					yield new Token(text.slice(0, text.length-cut), TokenType.COMMENT_MID_PI, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					countLines(text, 0, text.length-cut);
-					yield new Token('?>', TokenType.FIX_STRUCTURE_PI_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					yield new Token('-->', TokenType.FIX_STRUCTURE_COMMENT_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					break L;
-				}
-				case State.CDATA_PI:
-				{	const cut = text.charCodeAt(text.length-1)!=C_QEST ? 0 : 1;
-					yield new Token(text.slice(0, text.length-cut), TokenType.CDATA_MID_PI, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					countLines(text, 0, text.length-cut);
-					yield new Token('?>', TokenType.FIX_STRUCTURE_PI_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					yield new Token(']]>', TokenType.FIX_STRUCTURE_CDATA_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					break L;
-				}
-				case State.CDATA_JUNK_PI:
-				{	const cut = text.charCodeAt(text.length-1)!=C_QEST ? 0 : 1;
-					yield new Token(text.slice(0, text.length-cut), TokenType.PI_MID, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					countLines(text, 0, text.length-cut);
-					yield new Token('?>', TokenType.FIX_STRUCTURE_PI_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					break L;
-				}
-				default:
-				{	if (text.charCodeAt(0) == C_AMP) // this can be only in RE_TOKENIZER_TEXT, RE_TOKENIZER_TITLE, RE_TOKENIZER_TEXTAREA, RE_TOKENIZER_SCRIPT, RE_TOKENIZER_STYLE
+				case State.TEXT:
+				{	if (text.charCodeAt(0) == C_AMP)
 					{	const textNoPp = text.replace(RE_PP, '');
 						if (textNoPp.charCodeAt(textNoPp.length-1) != C_SEMICOLON)
-						{	yield new Token(text, TokenType.RAW_AMP, nLine, nColumn++, hierarchy.length, '', false, foreignLevel!=-1);
+						{	yield new Token('&', TokenType.RAW_AMP, nLine, nColumn++, hierarchy.length, '', false, foreignLevel!=-1);
 							lastIndex -= text.length - 1;
 							continue;
 						}
 					}
-					else if (text.charCodeAt(0) == C_LT) // this can be only in RE_TOKENIZER_TEXT, RE_TOKENIZER_TITLE, RE_TOKENIZER_TEXTAREA, RE_TOKENIZER_SCRIPT, RE_TOKENIZER_STYLE
-					{	const textNoPp = text.replace(RE_PP, '');
-						if
-						(	textNoPp.charCodeAt(textNoPp.length-1) != C_GT ||
-							text.charCodeAt(1)==C_EXCL &&
-							(	text.charCodeAt(2)==C_MINUS && (textNoPp.length<7 || textNoPp.charCodeAt(textNoPp.length-3)!=C_MINUS || textNoPp.charCodeAt(textNoPp.length-2)!=C_MINUS) ||
-								text.charCodeAt(2)==C_SQUARE_OPEN && (textNoPp.charCodeAt(textNoPp.length-3)!=C_SQUARE_CLOSE || textNoPp.charCodeAt(textNoPp.length-2)!=C_SQUARE_CLOSE)
-							)
-						)
-						{	yield new Token(text, re==RE_TOKENIZER_SCRIPT || re==RE_TOKENIZER_STYLE ? TokenType.TEXT : TokenType.RAW_LT, nLine, nColumn++, hierarchy.length, '', false, foreignLevel!=-1);
-							lastIndex -= text.length - 1;
-							continue;
+					else if (text.charCodeAt(0) == C_LT)
+					{	if (text.charCodeAt(1) == C_EXCL)
+						{	if (text!='<!--' && text!='<![CDATA[')
+							{	yield new Token('<', re==RE_TOKENIZER_SCRIPT || re==RE_TOKENIZER_STYLE ? TokenType.TEXT : TokenType.RAW_LT, nLine, nColumn++, hierarchy.length, '', false, foreignLevel!=-1);
+								lastIndex -= text.length - 1;
+								continue;
+							}
+						}
+						else
+						{	const textNoPp = text.replace(RE_PP, '');
+							if (textNoPp.charCodeAt(textNoPp.length-1) != C_GT)
+							{	yield new Token('<', re==RE_TOKENIZER_SCRIPT || re==RE_TOKENIZER_STYLE ? TokenType.TEXT : TokenType.RAW_LT, nLine, nColumn++, hierarchy.length, '', false, foreignLevel!=-1);
+								lastIndex -= text.length - 1;
+								continue;
+							}
 						}
 					}
 				}
@@ -661,10 +604,233 @@ L:	while (true)
 		}
 
 		switch (state)
-		{	case State.TAG_OPENED:
-			case State.BEFORE_ATTR_NAME:
-			case State.AFTER_NAME:
-			case State.AFTER_DUP_NAME:
+		{	case State.COMMENT:
+			{	if (text == '-->')
+				{	yield new Token(text, TokenType.COMMENT_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					nColumn += 3;
+					state = State.TEXT;
+					re = RE_TOKENIZER_TEXT;
+				}
+				else if (text == '<?')
+				{	yield new Token(text, TokenType.COMMENT_MID_PI, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					nColumn += 2;
+					state = State.COMMENT_PI;
+					re = RE_TOKENIZER_PI;
+				}
+				else
+				{	yield new Token(text, TokenType.COMMENT_MID, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					countLines(text, 0, text.length);
+				}
+				break;
+			}
+			case State.CDATA:
+			{	if (text == ']]>')
+				{	yield new Token(text, TokenType.CDATA_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					nColumn += 3;
+					state = State.TEXT;
+					re = RE_TOKENIZER_TEXT;
+				}
+				else if (text == '<?')
+				{	yield new Token(text, TokenType.CDATA_MID_PI, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					nColumn += 2;
+					state = State.CDATA_PI;
+					re = RE_TOKENIZER_PI;
+				}
+				else
+				{	yield new Token(text, TokenType.CDATA_MID, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					countLines(text, 0, text.length);
+				}
+				break;
+			}
+			case State.CDATA_JUNK:
+			{	if (text == ']]>')
+				{	yield new Token(text, TokenType.JUNK, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					nColumn += 3;
+					state = State.TEXT;
+					re = RE_TOKENIZER_TEXT;
+				}
+				else if (text == '<?')
+				{	yield new Token(text, TokenType.PI_BEGIN, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					nColumn += 2;
+					state = State.CDATA_JUNK_PI;
+					re = RE_TOKENIZER_PI;
+				}
+				else
+				{	yield new Token(text, TokenType.JUNK, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					countLines(text, 0, text.length);
+				}
+				break;
+			}
+			case State.PI:
+			{	if (text == '?>')
+				{	yield new Token(text, TokenType.PI_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					nColumn += 2;
+					state = State.TEXT;
+					re = RE_TOKENIZER_TEXT;
+				}
+				else
+				{	yield new Token(text, TokenType.PI_MID, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					countLines(text, 0, text.length);
+				}
+				break;
+			}
+			case State.COMMENT_PI:
+			{	if (text == '?>')
+				{	yield new Token(text, TokenType.COMMENT_MID_PI, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					nColumn += 2;
+					state = State.COMMENT;
+					re = RE_TOKENIZER_COMMENT;
+				}
+				else
+				{	yield new Token(text, TokenType.COMMENT_MID_PI, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					countLines(text, 0, text.length);
+				}
+				break;
+			}
+			case State.CDATA_PI:
+			{	if (text == '?>')
+				{	yield new Token(text, TokenType.CDATA_MID_PI, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					nColumn += 2;
+					state = State.CDATA;
+					re = RE_TOKENIZER_CDATA;
+				}
+				else
+				{	yield new Token(text, TokenType.CDATA_MID_PI, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					countLines(text, 0, text.length);
+				}
+				break;
+			}
+			case State.CDATA_JUNK_PI:
+			{	if (text == '?>')
+				{	yield new Token(text, TokenType.PI_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					nColumn += 2;
+					state = State.CDATA_JUNK;
+					re = RE_TOKENIZER_CDATA;
+				}
+				else
+				{	yield new Token(text, TokenType.PI_MID, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					countLines(text, 0, text.length);
+				}
+				break;
+			}
+			case State.TEXT:
+			{	if (text.charCodeAt(0) == C_AMP)
+				{	// &name; or &
+					if (text.length == 1)
+					{	yield new Token(text, TokenType.RAW_AMP, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+						nColumn++;
+					}
+					else
+					{	yield new Token(text, TokenType.ENTITY, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+						countLines(text, 0, text.length);
+					}
+				}
+				else if (text.charCodeAt(0) != C_LT)
+				{	// text
+					yield new Token(text, TokenType.TEXT, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					countLines(text, 0, text.length);
+				}
+				else if (text.length < 2)
+				{	// <
+					yield new Token(text, re==RE_TOKENIZER_SCRIPT || re==RE_TOKENIZER_STYLE ? TokenType.TEXT : TokenType.RAW_LT, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					nColumn++;
+				}
+				else if (text.charCodeAt(1) == C_SLASH)
+				{	// </name>
+					tagName = match[1];
+					if (foreignLevel!=-2 && tagName.indexOf('<')==-1)
+					{	tagName = tagName.toLowerCase();
+					}
+					let pos = hierarchy.lastIndexOf(tagName);
+					if (pos == -1)
+					{	yield new Token(text, TokenType.JUNK, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					}
+					else
+					{	let posEnd = hierarchy.length;
+						let structureBoundaryCrossed = false;
+						// auto close tags
+						while (posEnd > pos+1)
+						{	const t = hierarchy[--posEnd];
+							structureBoundaryCrossed = structureBoundaryCrossed || !TAGS_NON_STRUCTURE.has(t);
+							yield new Token(`</${t}>`, TokenType.FIX_STRUCTURE_TAG_CLOSE, nLine, nColumn, posEnd, t, false, foreignLevel!=-1);
+							if (posEnd <= foreignLevel)
+							{	foreignLevel = -1;
+							}
+						}
+						if (foreignLevel!=-1 || structureBoundaryCrossed || !TAGS_NON_STRUCTURE.has(tagName))
+						{	// finally close the wanted tag
+							hierarchy.length = pos;
+							yield new Token(text, TokenType.TAG_CLOSE, nLine, nColumn, pos, tagName, false, foreignLevel!=-1);
+							if (pos == foreignLevel)
+							{	foreignLevel = -1;
+							}
+						}
+						else
+						{	// close the wanted tag
+							yield new Token(text, TokenType.TAG_CLOSE, nLine, nColumn, pos, tagName, false, false);
+							// reopen tags like <b>, <i>, <u>, etc.
+							while (pos+1 < hierarchy.length)
+							{	const t = hierarchy[pos+1];
+								yield new Token(`<${t}>`, TokenType.FIX_STRUCTURE_TAG_OPEN, nLine, nColumn, pos, t, false, false);
+								hierarchy[pos++] = t;
+							}
+							hierarchy.length = pos;
+						}
+					}
+					countLines(text, 0, text.length);
+					state = State.TEXT;
+					re = RE_TOKENIZER_TEXT;
+				}
+				else if (text.charCodeAt(1) == C_EXCL)
+				{	// <!-- or <![CDATA[ or <!NAME or <![
+					if (text.charCodeAt(2) == C_DASH)
+					{	yield new Token(text, TokenType.COMMENT_BEGIN, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+						nColumn += 4;
+						state = State.COMMENT;
+						re = RE_TOKENIZER_COMMENT;
+					}
+					else if (!text.startsWith('<![CDATA['))
+					{	yield new Token(text, TokenType.DTD, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+						countLines(text, 0, text.length);
+					}
+					else if (foreignLevel != -1)
+					{	yield new Token(text, TokenType.CDATA_BEGIN, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+						nColumn += 9;
+						state = State.CDATA;
+						re = RE_TOKENIZER_CDATA;
+					}
+					else
+					{	yield new Token(text, TokenType.JUNK, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+						nColumn += 9;
+						state = State.CDATA_JUNK;
+						re = RE_TOKENIZER_CDATA;
+					}
+				}
+				else if (text.charCodeAt(1) == C_QEST)
+				{	// <?
+					yield new Token(text, TokenType.PI_BEGIN, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+					nColumn += 2;
+					state = State.PI;
+					re = RE_TOKENIZER_PI;
+				}
+				else
+				{	// <name ...>
+					tagName = text.slice(1);
+					if (foreignLevel!=-2 && tagName.indexOf('<')==-1)
+					{	tagName = tagName.toLowerCase();
+					}
+					if (foreignLevel==-1 && (tagName=='svg' || tagName=='math'))
+					{	foreignLevel = hierarchy.length;
+					}
+					yield new Token(text, TokenType.TAG_OPEN_BEGIN, nLine, nColumn, hierarchy.length, tagName, false, foreignLevel!=-1);
+					countLines(text, 0, text.length);
+					state = State.TAG_OPENED;
+					re = RE_TOKENIZER_TAG;
+					curAttrs?.clear();
+				}
+				break;
+			}
+			default: // TAG_OPENED, BEFORE_ATTR_NAME, AFTER_NAME, AFTER_DUP_NAME
 			{	if (text.length<=2 && text.charCodeAt(text.length-1)==C_GT) // '>' or '/>'
 				{	state = State.TEXT;
 					re = RE_TOKENIZER_TEXT;
@@ -783,7 +949,9 @@ L:	while (true)
 				else if (!text.trim())
 				{	yield new Token(text, TokenType.TAG_OPEN_SPACE, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
 					countLines(text, 0, text.length);
-					state = State.BEFORE_ATTR_NAME;
+					if (state == State.TAG_OPENED)
+					{	state = State.BEFORE_ATTR_NAME;
+					}
 				}
 				else
 				{	if (state == State.TAG_OPENED)
@@ -806,232 +974,39 @@ L:	while (true)
 				}
 				break;
 			}
-			case State.COMMENT:
-			{	if (text == '-->')
-				{	yield new Token(text, TokenType.COMMENT_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					nColumn += 3;
-					state = State.TEXT;
-					re = RE_TOKENIZER_TEXT;
-				}
-				else if (text == '<?')
-				{	yield new Token(text, TokenType.COMMENT_MID_PI, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					nColumn += 2;
-					state = State.COMMENT_PI;
-					re = RE_TOKENIZER_PI;
-				}
-				else
-				{	yield new Token(text, TokenType.COMMENT_MID, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					countLines(text, 0, text.length);
-				}
-				break;
-			}
-			case State.CDATA:
-			{	if (text == ']]>')
-				{	yield new Token(text, TokenType.CDATA_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					nColumn += 3;
-					state = State.TEXT;
-					re = RE_TOKENIZER_TEXT;
-				}
-				else if (text == '<?')
-				{	yield new Token(text, TokenType.CDATA_MID_PI, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					nColumn += 2;
-					state = State.CDATA_PI;
-					re = RE_TOKENIZER_PI;
-				}
-				else
-				{	yield new Token(text, TokenType.CDATA_MID, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					countLines(text, 0, text.length);
-				}
-				break;
-			}
-			case State.CDATA_JUNK:
-			{	if (text == ']]>')
-				{	yield new Token(text, TokenType.JUNK, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					nColumn += 3;
-					state = State.TEXT;
-					re = RE_TOKENIZER_TEXT;
-				}
-				else if (text == '<?')
-				{	yield new Token(text, TokenType.PI_BEGIN, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					nColumn += 2;
-					state = State.CDATA_JUNK_PI;
-					re = RE_TOKENIZER_PI;
-				}
-				else
-				{	yield new Token(text, TokenType.JUNK, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					countLines(text, 0, text.length);
-				}
-				break;
-			}
-			case State.PI:
-			{	if (text == '?>')
-				{	yield new Token(text, TokenType.PI_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					nColumn += 2;
-					state = State.TEXT;
-					re = RE_TOKENIZER_TEXT;
-				}
-				else
-				{	yield new Token(text, TokenType.PI_MID, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					countLines(text, 0, text.length);
-				}
-				break;
-			}
-			case State.COMMENT_PI:
-			{	if (text == '?>')
-				{	yield new Token(text, TokenType.COMMENT_MID_PI, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					nColumn += 2;
-					state = State.COMMENT;
-					re = RE_TOKENIZER_COMMENT;
-				}
-				else
-				{	yield new Token(text, TokenType.COMMENT_MID_PI, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					countLines(text, 0, text.length);
-				}
-				break;
-			}
-			case State.CDATA_PI:
-			{	if (text == '?>')
-				{	yield new Token(text, TokenType.CDATA_MID_PI, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					nColumn += 2;
-					state = State.CDATA;
-					re = RE_TOKENIZER_CDATA;
-				}
-				else
-				{	yield new Token(text, TokenType.CDATA_MID_PI, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					countLines(text, 0, text.length);
-				}
-				break;
-			}
-			case State.CDATA_JUNK_PI:
-			{	if (text == '?>')
-				{	yield new Token(text, TokenType.PI_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					nColumn += 2;
-					state = State.CDATA_JUNK;
-					re = RE_TOKENIZER_CDATA;
-				}
-				else
-				{	yield new Token(text, TokenType.PI_MID, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					countLines(text, 0, text.length);
-				}
-				break;
-			}
-			default:
-			{	if (text.charCodeAt(0) == C_AMP)
-				{	// &name; or &
-					if (text.length == 1)
-					{	yield new Token(text, TokenType.RAW_AMP, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-						nColumn++;
-					}
-					else
-					{	yield new Token(text, TokenType.ENTITY, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-						countLines(text, 0, text.length);
-					}
-				}
-				else if (text.charCodeAt(0) != C_LT)
-				{	// text
-					yield new Token(text, TokenType.TEXT, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					countLines(text, 0, text.length);
-				}
-				else if (text.length < 2)
-				{	// <
-					yield new Token(text, re==RE_TOKENIZER_SCRIPT || re==RE_TOKENIZER_STYLE ? TokenType.TEXT : TokenType.RAW_LT, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					nColumn++;
-				}
-				else if (text.charCodeAt(1) == C_EXCL)
-				{	// <!-- or <![CDATA[ or <!NAME or <![
-					if (text.charCodeAt(2) == C_DASH)
-					{	yield new Token(text, TokenType.COMMENT_BEGIN, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-						nColumn += 4;
-						state = State.COMMENT;
-						re = RE_TOKENIZER_COMMENT;
-					}
-					else if (!text.startsWith('<![CDATA['))
-					{	yield new Token(text, TokenType.DTD, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-						countLines(text, 0, text.length);
-					}
-					else if (foreignLevel != -1)
-					{	yield new Token(text, TokenType.CDATA_BEGIN, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-						nColumn += 9;
-						state = State.CDATA;
-						re = RE_TOKENIZER_CDATA;
-					}
-					else
-					{	yield new Token(text, TokenType.JUNK, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-						nColumn += 9;
-						state = State.CDATA_JUNK;
-						re = RE_TOKENIZER_CDATA;
-					}
-				}
-				else if (text.charCodeAt(1) == C_QEST)
-				{	// <?
-					yield new Token(text, TokenType.PI_BEGIN, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					nColumn += 2;
-					state = State.PI;
-					re = RE_TOKENIZER_PI;
-				}
-				else if (text.charCodeAt(1) == C_SLASH)
-				{	// </name>
-					tagName = match[1];
-					if (foreignLevel!=-2 && tagName.indexOf('<')==-1)
-					{	tagName = tagName.toLowerCase();
-					}
-					let pos = hierarchy.lastIndexOf(tagName);
-					if (pos == -1)
-					{	yield new Token(text, TokenType.JUNK, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
-					}
-					else
-					{	let posEnd = hierarchy.length;
-						let structureBoundaryCrossed = false;
-						// auto close tags
-						while (posEnd > pos+1)
-						{	const t = hierarchy[--posEnd];
-							structureBoundaryCrossed = structureBoundaryCrossed || !TAGS_NON_STRUCTURE.has(t);
-							yield new Token(`</${t}>`, TokenType.FIX_STRUCTURE_TAG_CLOSE, nLine, nColumn, posEnd, t, false, foreignLevel!=-1);
-							if (posEnd <= foreignLevel)
-							{	foreignLevel = -1;
-							}
-						}
-						if (foreignLevel!=-1 || structureBoundaryCrossed || !TAGS_NON_STRUCTURE.has(tagName))
-						{	// finally close the wanted tag
-							hierarchy.length = pos;
-							yield new Token(text, TokenType.TAG_CLOSE, nLine, nColumn, pos, tagName, false, foreignLevel!=-1);
-							if (pos == foreignLevel)
-							{	foreignLevel = -1;
-							}
-						}
-						else
-						{	// close the wanted tag
-							yield new Token(text, TokenType.TAG_CLOSE, nLine, nColumn, pos, tagName, false, false);
-							// reopen tags like <b>, <i>, <u>, etc.
-							while (pos+1 < hierarchy.length)
-							{	const t = hierarchy[pos+1];
-								yield new Token(`<${t}>`, TokenType.FIX_STRUCTURE_TAG_OPEN, nLine, nColumn, pos, t, false, false);
-								hierarchy[pos++] = t;
-							}
-							hierarchy.length = pos;
-						}
-					}
-					countLines(text, 0, text.length);
-					state = State.TEXT;
-					re = RE_TOKENIZER_TEXT;
-				}
-				else
-				{	// <name ...>
-					tagName = text.slice(1);
-					if (foreignLevel!=-2 && tagName.indexOf('<')==-1)
-					{	tagName = tagName.toLowerCase();
-					}
-					if (foreignLevel==-1 && (tagName=='svg' || tagName=='math'))
-					{	foreignLevel = hierarchy.length;
-					}
-					yield new Token(text, TokenType.TAG_OPEN_BEGIN, nLine, nColumn, hierarchy.length, tagName, false, foreignLevel!=-1);
-					countLines(text, 0, text.length);
-					state = State.TAG_OPENED;
-					re = RE_TOKENIZER_TAG;
-					curAttrs?.clear();
-				}
-			}
 		}
+	}
+
+	switch (state)
+	{	case State.TAG_OPENED:
+		case State.BEFORE_ATTR_NAME:
+		case State.AFTER_NAME:
+		case State.AFTER_DUP_NAME:
+			yield new Token('>', TokenType.FIX_STRUCTURE_TAG_OPEN_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+			if (!TAGS_VOID.has(tagName))
+			{	yield new Token(`</${tagName}>`, TokenType.FIX_STRUCTURE_TAG_CLOSE, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+			}
+			break;
+		case State.COMMENT:
+			yield new Token('-->', TokenType.FIX_STRUCTURE_COMMENT_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+			break;
+		case State.CDATA:
+			yield new Token(']]>', TokenType.FIX_STRUCTURE_CDATA_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+			break;
+		case State.PI:
+			yield new Token('?>', TokenType.FIX_STRUCTURE_PI_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+			break;
+		case State.COMMENT_PI:
+			yield new Token('?>', TokenType.FIX_STRUCTURE_PI_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+			yield new Token('-->', TokenType.FIX_STRUCTURE_COMMENT_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+			break;
+		case State.CDATA_PI:
+			yield new Token('?>', TokenType.FIX_STRUCTURE_PI_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+			yield new Token(']]>', TokenType.FIX_STRUCTURE_CDATA_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+			break;
+		case State.CDATA_JUNK_PI:
+			yield new Token('?>', TokenType.FIX_STRUCTURE_PI_END, nLine, nColumn, hierarchy.length, '', false, foreignLevel!=-1);
+			break;
 	}
 
 	for (let pos=hierarchy.length-1; pos>=0; pos--)

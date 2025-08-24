@@ -180,7 +180,7 @@ Deno.test
 Deno.test
 (	'Basic 2',
 	() =>
-	{	const source = `<input type=text value='One'> <br > <hr /> <img src='data:,'/> <a id=a/>`;
+	{	const source = `<input type=text value='One'> <br > <hr /> <img src='data:,'/> <a id  =  a/>`;
 		const tokens = [...htmltok(source)];
 		assertEquals(tokens.join(''), source);
 		assertEquals
@@ -214,12 +214,14 @@ Deno.test
 				{nLine: 1,  nColumn: 64, level: 0, tagName: "a",       isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<a"},
 				{nLine: 1,  nColumn: 66, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
 				{nLine: 1,  nColumn: 67, level: 0, tagName: "a",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "id"},
-				{nLine: 1,  nColumn: 69, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-				{nLine: 1,  nColumn: 70, level: 0, tagName: "a",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "a"},
-				{nLine: 1,  nColumn: 71, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "/>"},
-				{nLine: 1,  nColumn: 71, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "/"},
-				{nLine: 1,  nColumn: 72, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
-				{nLine: 1,  nColumn: 73, level: 0, tagName: "a",       isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_CLOSE,      text: "</a>"},
+				{nLine: 1,  nColumn: 69, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: "  "},
+				{nLine: 1,  nColumn: 71, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
+				{nLine: 1,  nColumn: 72, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: "  "},
+				{nLine: 1,  nColumn: 74, level: 0, tagName: "a",       isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "a"},
+				{nLine: 1,  nColumn: 75, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "/>"},
+				{nLine: 1,  nColumn: 75, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "/"},
+				{nLine: 1,  nColumn: 76, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
+				{nLine: 1,  nColumn: 77, level: 0, tagName: "a",       isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_CLOSE,      text: "</a>"},
 			]
 		);
 		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
@@ -297,6 +299,264 @@ Deno.test
 			]
 		);
 		assertEquals(tokens.map(t => t.normalized()).join(''), `<div><span a="1" b="2">Hello</span></div>\n  <div>A<b>B<u>BU</u></b><u>U</u></div>\n`);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'Fix structure 2',
+	() =>
+	{	const source = `<div abc`;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<div"},
+				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
+				{nLine: 1,  nColumn: 6,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "abc"},
+				{nLine: 1,  nColumn: 6,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "abc"},
+				{nLine: 1,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_OPEN_END,   text: ">"},
+				{nLine: 1,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_CLOSE,      text: "</div>"},
+			]
+		);
+		assertEquals(tokens.map(t => t.normalized()).join(''), `<div abc></div>`);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'Fix structure 3',
+	() =>
+	{	const source = `<div abc=`;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<div"},
+				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
+				{nLine: 1,  nColumn: 6,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "abc"},
+				{nLine: 1,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "="},
+				{nLine: 1,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "="},
+				{nLine: 1,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_OPEN_END,   text: ">"},
+				{nLine: 1,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_CLOSE,      text: "</div>"},
+			]
+		);
+		assertEquals(tokens.map(t => t.normalized()).join(''), `<div abc></div>`);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'Fix structure 4',
+	() =>
+	{	const source = `<div abc= `;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<div"},
+				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
+				{nLine: 1,  nColumn: 6,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "abc"},
+				{nLine: 1,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "= "},
+				{nLine: 1,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "= "},
+				{nLine: 1,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_OPEN_END,   text: ">"},
+				{nLine: 1,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_CLOSE,      text: "</div>"},
+			]
+		);
+		assertEquals(tokens.map(t => t.normalized()).join(''), `<div abc></div>`);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'Fix structure 5',
+	() =>
+	{	const source = `<div abc=def`;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<div"},
+				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
+				{nLine: 1,  nColumn: 6,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "abc"},
+				{nLine: 1,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "=def"},
+				{nLine: 1,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
+				{nLine: 1,  nColumn: 10, level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "def"},
+				{nLine: 1,  nColumn: 13, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_OPEN_END,   text: ">"},
+				{nLine: 1,  nColumn: 13, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_CLOSE,      text: "</div>"},
+			]
+		);
+		assertEquals(tokens.map(t => t.normalized()).join(''), `<div abc=def></div>`);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'Fix structure 6',
+	() =>
+	{	const source = `<div abc='def`;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<div"},
+				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
+				{nLine: 1,  nColumn: 6,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "abc"},
+				{nLine: 1,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "='def"},
+				{nLine: 1,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "='def"},
+				{nLine: 1,  nColumn: 14, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_OPEN_END,   text: ">"},
+				{nLine: 1,  nColumn: 14, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_CLOSE,      text: "</div>"},
+			]
+		);
+		assertEquals(tokens.map(t => t.normalized()).join(''), `<div abc></div>`);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'Fix structure 7',
+	() =>
+	{	const source = `<div abc='def'`;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<div"},
+				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
+				{nLine: 1,  nColumn: 6,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "abc"},
+				{nLine: 1,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "='def'"},
+				{nLine: 1,  nColumn: 9,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
+				{nLine: 1,  nColumn: 10, level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "'def'"},
+				{nLine: 1,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_OPEN_END,   text: ">"},
+				{nLine: 1,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_CLOSE,      text: "</div>"},
+			]
+		);
+		assertEquals(tokens.map(t => t.normalized()).join(''), `<div abc='def'></div>`);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'Fix structure 8',
+	() =>
+	{	const source = `<div><svg><g></div>`;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<div"},
+				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
+				{nLine: 1,  nColumn: 6,  level: 1, tagName: "svg",     isSelfClosing: false, isForeign: true,  type: TokenType.TAG_OPEN_BEGIN,               text: "<svg"},
+				{nLine: 1,  nColumn: 10, level: 1, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.TAG_OPEN_END,                 text: ">"},
+				{nLine: 1,  nColumn: 11, level: 2, tagName: "g",       isSelfClosing: false, isForeign: true,  type: TokenType.TAG_OPEN_BEGIN,               text: "<g"},
+				{nLine: 1,  nColumn: 13, level: 2, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.TAG_OPEN_END,                 text: ">"},
+				{nLine: 1,  nColumn: 14, level: 3, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.MORE_REQUEST,                 text: "</div>"},
+				{nLine: 1,  nColumn: 14, level: 2, tagName: "g",       isSelfClosing: false, isForeign: true,  type: TokenType.FIX_STRUCTURE_TAG_CLOSE,      text: "</g>"},
+				{nLine: 1,  nColumn: 14, level: 1, tagName: "svg",     isSelfClosing: false, isForeign: true,  type: TokenType.FIX_STRUCTURE_TAG_CLOSE,      text: "</svg>"},
+				{nLine: 1,  nColumn: 14, level: 0, tagName: "div",     isSelfClosing: false, isForeign: false, type: TokenType.TAG_CLOSE,                    text: "</div>"},
+			]
+		);
+		assertEquals(tokens.map(t => t.normalized()).join(''), `<div><svg><g></g></svg></div>`);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'No terminated properly',
+	() =>
+	{	const source = `a&lt`;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "a"},
+				{nLine: 1,  nColumn: 2,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "&lt"},
+				{nLine: 1,  nColumn: 2,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.RAW_AMP,                      text: "&"},
+				{nLine: 1,  nColumn: 3,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "lt"},
+				{nLine: 1,  nColumn: 3,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "lt"},
+			]
+		);
+		assertEquals(tokens.map(t => t.normalized()).join(''), `a&amp;lt`);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'No terminated properly 2',
+	() =>
+	{	const source = `a<div`;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "a"},
+				{nLine: 1,  nColumn: 2,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "<div"},
+				{nLine: 1,  nColumn: 2,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.RAW_LT,                       text: "<"},
+				{nLine: 1,  nColumn: 3,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "div"},
+				{nLine: 1,  nColumn: 3,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "div"},
+			]
+		);
+		assertEquals(tokens.map(t => t.normalized()).join(''), `a&lt;div`);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'No terminated properly 3',
+	() =>
+	{	const source = `a<!-`;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "a"},
+				{nLine: 1,  nColumn: 2,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "<!-"},
+				{nLine: 1,  nColumn: 2,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.RAW_LT,                       text: "<"},
+				{nLine: 1,  nColumn: 3,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "!-"},
+				{nLine: 1,  nColumn: 3,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "!-"},
+			]
+		);
+		assertEquals(tokens.map(t => t.normalized()).join(''), `a&lt;!-`);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'No terminated properly 4',
+	() =>
+	{	const source = `a<!--`;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "a"},
+				{nLine: 1,  nColumn: 2,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "<!--"},
+				{nLine: 1,  nColumn: 2,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.COMMENT_BEGIN,                text: "<!--"},
+				{nLine: 1,  nColumn: 6,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_COMMENT_END,    text: "-->"},
+			]
+		);
+		assertEquals(tokens.map(t => t.normalized()).join(''), `a<!---->`);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'No terminated properly 3',
+	() =>
+	{	const source = `<style><!-`;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "style",   isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_BEGIN,               text: "<style"},
+				{nLine: 1,  nColumn: 7,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_END,                 text: ">"},
+				{nLine: 1,  nColumn: 8,  level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "<"},
+				{nLine: 1,  nColumn: 9,  level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "!-"},
+				{nLine: 1,  nColumn: 9,  level: 1, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "!-"},
+				{nLine: 1,  nColumn: 11, level: 0, tagName: "style",   isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_TAG_CLOSE,      text: "</style>"},
+			]
+		);
+		assertEquals(tokens.map(t => t.normalized()).join(''), `<style><!-</style>`);
 		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
 	}
 );
@@ -551,6 +811,44 @@ Deno.test
 );
 
 Deno.test
+(	'PI 2',
+	() =>
+	{	const source = `A<?B`;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "A"},
+				{nLine: 1,  nColumn: 2,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.PI_BEGIN,                     text: "<?"},
+				{nLine: 1,  nColumn: 4,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "B"},
+				{nLine: 1,  nColumn: 4,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.PI_MID,                       text: "B"},
+				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_PI_END,         text: "?>"},
+			]
+		);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'PI 3',
+	() =>
+	{	const source = `A<?B?>`;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TEXT,                         text: "A"},
+				{nLine: 1,  nColumn: 2,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.PI_BEGIN,                     text: "<?"},
+				{nLine: 1,  nColumn: 4,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.PI_MID,                       text: "B"},
+				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "?>"},
+				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.PI_END,                       text: "?>"},
+			]
+		);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
 (	'Replaceable character data',
 	() =>
 	{	const source = `<br> <title>Line&1<br>&amp;Line1</title> <br> <textarea cols=2>Line1<br>Line&euro;1</textarea>`;
@@ -784,6 +1082,63 @@ Deno.test
 );
 
 Deno.test
+(	'Comments 2',
+	() =>
+	{	const source = `<!--hello`;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.COMMENT_BEGIN,                text: "<!--"},
+				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "hello"},
+				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.COMMENT_MID,                  text: "hello"},
+				{nLine: 1,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_COMMENT_END,    text: "-->"},
+			]
+		);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'Comments 3',
+	() =>
+	{	const source = `<!--hello-`;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.COMMENT_BEGIN,                text: "<!--"},
+				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "hello-"},
+				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.COMMENT_MID,                  text: "hello-"},
+				{nLine: 1,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_COMMENT_END,    text: "-->"},
+			]
+		);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'Comments 4',
+	() =>
+	{	const source = `<!--hello<?echo`;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.COMMENT_BEGIN,                text: "<!--"},
+				{nLine: 1,  nColumn: 5,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.COMMENT_MID,                  text: "hello"},
+				{nLine: 1,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.COMMENT_MID_PI,               text: "<?"},
+				{nLine: 1,  nColumn: 12, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "echo"},
+				{nLine: 1,  nColumn: 12, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.COMMENT_MID_PI,               text: "echo"},
+				{nLine: 1,  nColumn: 16, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_PI_END,         text: "?>"},
+				{nLine: 1,  nColumn: 16, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_COMMENT_END,    text: "-->"}
+			]
+		);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
 (	'CDATA',
 	() =>
 	{	const source = `<![CDATA[]]><![CDATA[[[]]><![CDATA[ ]] ]]><![CDATA[ [[ ]]><![CDATA[ <?]]>?> ]]>`;
@@ -871,6 +1226,127 @@ Deno.test
 				{nLine: 1,  nColumn: 57, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "echo"},
 				{nLine: 1,  nColumn: 57, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.PI_MID,                       text: "echo"},
 				{nLine: 1,  nColumn: 61, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.FIX_STRUCTURE_PI_END,         text: "?>"},
+			]
+		);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'CDATA 4',
+	() =>
+	{	const source = `<![CDATA[junk1<?echo 2*2?>junk2]]> text <![CDATA[junk1<?echo`;
+		const tokens = [...htmltok(source, {mode: 'xml'})];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: true, type: TokenType.CDATA_BEGIN,                  text: "<![CDATA["},
+				{nLine: 1,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: true, type: TokenType.CDATA_MID,                    text: "junk1"},
+				{nLine: 1,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: true, type: TokenType.CDATA_MID_PI,                 text: "<?"},
+				{nLine: 1,  nColumn: 17, level: 0, tagName: "",        isSelfClosing: false, isForeign: true, type: TokenType.CDATA_MID_PI,                 text: "echo 2*2"},
+				{nLine: 1,  nColumn: 25, level: 0, tagName: "",        isSelfClosing: false, isForeign: true, type: TokenType.CDATA_MID_PI,                 text: "?>"},
+				{nLine: 1,  nColumn: 27, level: 0, tagName: "",        isSelfClosing: false, isForeign: true, type: TokenType.CDATA_MID,                    text: "junk2"},
+				{nLine: 1,  nColumn: 32, level: 0, tagName: "",        isSelfClosing: false, isForeign: true, type: TokenType.CDATA_END,                    text: "]]>"},
+				{nLine: 1,  nColumn: 35, level: 0, tagName: "",        isSelfClosing: false, isForeign: true, type: TokenType.TEXT,                         text: " text "},
+				{nLine: 1,  nColumn: 41, level: 0, tagName: "",        isSelfClosing: false, isForeign: true, type: TokenType.CDATA_BEGIN,                  text: "<![CDATA["},
+				{nLine: 1,  nColumn: 50, level: 0, tagName: "",        isSelfClosing: false, isForeign: true, type: TokenType.CDATA_MID,                    text: "junk1"},
+				{nLine: 1,  nColumn: 55, level: 0, tagName: "",        isSelfClosing: false, isForeign: true, type: TokenType.CDATA_MID_PI,                 text: "<?"},
+				{nLine: 1,  nColumn: 57, level: 0, tagName: "",        isSelfClosing: false, isForeign: true, type: TokenType.MORE_REQUEST,                 text: "echo"},
+				{nLine: 1,  nColumn: 57, level: 0, tagName: "",        isSelfClosing: false, isForeign: true, type: TokenType.CDATA_MID_PI,                 text: "echo"},
+				{nLine: 1,  nColumn: 61, level: 0, tagName: "",        isSelfClosing: false, isForeign: true, type: TokenType.FIX_STRUCTURE_PI_END,         text: "?>"},
+				{nLine: 1,  nColumn: 61, level: 0, tagName: "",        isSelfClosing: false, isForeign: true, type: TokenType.FIX_STRUCTURE_CDATA_END,      text: "]]>"},
+			]
+		);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'CDATA 5',
+	() =>
+	{	const source = `<![CDATA[hello`;
+		const tokens = [...htmltok(source, {mode: 'xml'})];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.CDATA_BEGIN,                  text: "<![CDATA["},
+				{nLine: 1,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.MORE_REQUEST,                 text: "hello"},
+				{nLine: 1,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.CDATA_MID,                    text: "hello"},
+				{nLine: 1,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.FIX_STRUCTURE_CDATA_END,      text: "]]>"},
+			]
+		);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'CDATA 6',
+	() =>
+	{	const source = `<![CDATA[hello`;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "<![CDATA["},
+				{nLine: 1,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "hello"},
+				{nLine: 1,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "hello"},
+			]
+		);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'CDATA 7',
+	() =>
+	{	const source = `<![CDATA[hello]]>`;
+		const tokens = [...htmltok(source, {mode: 'xml'})];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.CDATA_BEGIN,                  text: "<![CDATA["},
+				{nLine: 1,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.CDATA_MID,                    text: "hello"},
+				{nLine: 1,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.MORE_REQUEST,                 text: "]]>"},
+				{nLine: 1,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.CDATA_END,                    text: "]]>"},
+			]
+		);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'CDATA 8',
+	() =>
+	{	const source = `<![CDATA[hello]]>`;
+		const tokens = [...htmltok(source)];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "<![CDATA["},
+				{nLine: 1,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "hello"},
+				{nLine: 1,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.MORE_REQUEST,                 text: "]]>"},
+				{nLine: 1,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "]]>"},
+			]
+		);
+		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
+	}
+);
+
+Deno.test
+(	'CDATA 9',
+	() =>
+	{	const source = `<![CDATA[hello<?echo`;
+		const tokens = [...htmltok(source, {mode: 'xml'})];
+		assertEquals(tokens.join(''), source);
+		assertEquals
+		(	tokens.map(v => Object.assign({} as Any, v)),
+			[	{nLine: 1,  nColumn: 1,  level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.CDATA_BEGIN,                  text: "<![CDATA["},
+				{nLine: 1,  nColumn: 10, level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.CDATA_MID,                    text: "hello"},
+				{nLine: 1,  nColumn: 15, level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.CDATA_MID_PI,                 text: "<?"},
+				{nLine: 1,  nColumn: 17, level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.MORE_REQUEST,                 text: "echo"},
+				{nLine: 1,  nColumn: 17, level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.CDATA_MID_PI,                 text: "echo"},
+				{nLine: 1,  nColumn: 21, level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.FIX_STRUCTURE_PI_END,         text: "?>"},
+				{nLine: 1,  nColumn: 21, level: 0, tagName: "",        isSelfClosing: false, isForeign: true,  type: TokenType.FIX_STRUCTURE_CDATA_END,      text: "]]>"},
 			]
 		);
 		assertEquals(eval('[' + tokens.map(t => t.debug()).join(',') + ']'), tokens.map(v => Object.assign({} as Any, v)));
@@ -1030,7 +1506,7 @@ Deno.test
 		}
 
 		for (const c of ['\r', '\n'])
-		{	const source = `<meta name="viewport" content="char${c}">`;
+		{	const source = `<meta name='viewport' content="char${c}">`;
 			const tokens = [...htmltok(source, {unquoteAttributes: true})];
 			assertEquals(tokens.join(''), source);
 			assertEquals
@@ -1039,9 +1515,9 @@ Deno.test
 					{nLine: 1,  nColumn: 6,  level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
 					{nLine: 1,  nColumn: 7,  level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "name"},
 					{nLine: 1,  nColumn: 11, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
-					{nLine: 1,  nColumn: 12, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "\""},
+					{nLine: 1,  nColumn: 12, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "'"},
 					{nLine: 1,  nColumn: 13, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_VALUE,                   text: "viewport"},
-					{nLine: 1,  nColumn: 21, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "\""},
+					{nLine: 1,  nColumn: 21, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.JUNK,                         text: "'"},
 					{nLine: 1,  nColumn: 22, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.TAG_OPEN_SPACE,               text: " "},
 					{nLine: 1,  nColumn: 23, level: 0, tagName: "meta",    isSelfClosing: false, isForeign: false, type: TokenType.ATTR_NAME,                    text: "content"},
 					{nLine: 1,  nColumn: 30, level: 0, tagName: "",        isSelfClosing: false, isForeign: false, type: TokenType.ATTR_EQ,                      text: "="},
@@ -1155,6 +1631,15 @@ Deno.test
 		token = [...htmltok(`<?HELLO &apos;?> `)][1];
 		assertEquals(token.getValue(), "HELLO &apos;");
 
+		token = [...htmltok(`<div DATA-Value=1>text</div>`)][2];
+		assertEquals(token.getValue(), "data-value");
+
+		token = [...htmltok(`<div DATA-Value=1>text</div>`, {mode: 'xml'})][2];
+		assertEquals(token.getValue(), "DATA-Value");
+
+		token = [...htmltok(`<div Data-<?value?>=1>text</div>`)][2];
+		assertEquals(token.getValue(), "Data-<?value?>");
+
 		token = [...htmltok(`<div title=a&amp;b>text</div>`)][4];
 		assertEquals(token.getValue(), "a&b");
 
@@ -1163,5 +1648,14 @@ Deno.test
 
 		token = [...htmltok(`<div title='a&amp;b'>text</div>`)][4];
 		assertEquals(token.getValue(), "a&b");
+
+		token = [...htmltok(`<div = a`)][2]; // JUNK
+		assertEquals(token.getValue(), "");
+
+		token = [...htmltok(`<br b b>`)][4]; // JUNK_DUP_ATTR_NAME
+		assertEquals(token.getValue(), "");
+
+		token = [...htmltok(`a`)][0]; // MORE_REQUEST
+		assertEquals(token.getValue(), "");
 	}
 );
