@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {Token} from "https://deno.land/x/htmltok@v3.0.0/mod.ts"
+import {Token} from "https://deno.land/x/htmltok@v3.0.1/mod.ts"
 ```
 
 ## This class has

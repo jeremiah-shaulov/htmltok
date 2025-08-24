@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {TokenType} from "https://deno.land/x/htmltok@v3.0.0/mod.ts"
+import {TokenType} from "https://deno.land/x/htmltok@v3.0.1/mod.ts"
 ```
 
 #### TEXT = <mark>0</mark>

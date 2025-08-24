@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {Settings} from "https://deno.land/x/htmltok@v3.0.0/mod.ts"
+import {Settings} from "https://deno.land/x/htmltok@v3.0.1/mod.ts"
 ```
 
 ## This interface has
@@ -42,7 +42,7 @@ import {Settings} from "https://deno.land/x/htmltok@v3.0.0/mod.ts"
 
 #### 📄 maxTokenLength?: `number`
 
-> Default value: `16 KiB`
+> Default value: `16384 characters`
 > 
 > If single unsplittable token exceeds this length, an exception will be thrown.
 > However this check is only performed before issuing [TokenType.MORE\_REQUEST](../enum.TokenType/README.md#more_request--33) (so tokens can be longer as long as there's enough space in the buffer).
