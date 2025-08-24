@@ -130,7 +130,7 @@
 	- `nLine` - Line number where this token starts.
 	- `nColumn` - Column number on the line where this token starts.
 	- `level` - Tag nesting level.
-	- `tagName` - is set on {@link TokenType.TAG_OPEN_BEGIN}, {@link TokenType.TAG_CLOSE}, {@link TokenType.ATTR_NAME}, {@link TokenType.ATTR_VALUE}, {@link TokenType.FIX_STRUCTURE_TAG_OPEN} and {@link TokenType.FIX_STRUCTURE_TAG_CLOSE}. Lowercased tag name.
+	- `tagName` - is set on {@link TokenType.TAG_OPEN_BEGIN}, {@link TokenType.TAG_CLOSE}, {@link TokenType.ATTR_NAME}, {@link TokenType.ATTR_VALUE}, {@link TokenType.JUNK_DUP_ATTR_NAME}, {@link TokenType.FIX_STRUCTURE_TAG_OPEN} and {@link TokenType.FIX_STRUCTURE_TAG_CLOSE}. Lowercased tag name.
 	- `isSelfClosing` - is set only on {@link TokenType.TAG_OPEN_END}. `true` if this tag is one of `area`, `base`, `br`, `col`, `command`, `embed`, `hr`, `img`, `input`, `keygen`, `link`, `menuitem`, `meta`, `param`, `source`, `track`, `wbr`. {@link Token.text} can be `>` or `/>`, as appears in the source. Also it's set to `true` in foreign (XML) tags that use `/>` to self-close the tag. If `/>` is used in a regular HTML tag, not from the list above, the `/` character is treated as {@link TokenType.JUNK}.
 	- `isForeign` - When parsing in HTML mode ({@link Settings.mode} !== 'xml'), this flag is set on each token inside `<svg>` and `<math>` tags. In XML mode it's always set.
 
@@ -146,11 +146,8 @@
 	{@link Token.debug()} - returns {@link Token} object stringified for `console.log()`.
 
 	{@link Token.getValue()} - returns decoded value of the token.
-	- For {@link TokenType.CDATA} it returns the containing text (without `<![CDATA[` and `]]>`).
-	- For {@link TokenType.COMMENT} it returns the containing text (without `<!--` and `-->`).
-	- For {@link TokenType.PI} it returns the containing text (without `<?` and `?>`).
-	- For {@link TokenType.TAG_OPEN_BEGIN}, {@link TokenType.TAG_CLOSE}, {@link TokenType.FIX_STRUCTURE_TAG_OPEN} and {@link TokenType.FIX_STRUCTURE_TAG_CLOSE} it returns lowercased (if not XML and there're no preprocessing instructions) tag name (the same as {@link Token.tagName}).
 	- For {@link TokenType.ENTITY} it returns the decoded value of the entity. In both HTML and XML, it understands only standard HTML5 entity names.
+	- For {@link TokenType.TAG_OPEN_BEGIN}, {@link TokenType.TAG_CLOSE}, {@link TokenType.FIX_STRUCTURE_TAG_OPEN} and {@link TokenType.FIX_STRUCTURE_TAG_CLOSE} it returns lowercased (if not XML and there're no preprocessing instructions) tag name (the same as {@link Token.tagName}).
 	- For {@link TokenType.ATTR_NAME} it returns lowercased (if not XML and there're no preprocessing instructions) attribute name.
 	- For {@link TokenType.ATTR_VALUE} it returns the entity-decoded value of the attribute, without markup quotes (if used).
 	- For {@link TokenType.RAW_LT} it returns `<`.
@@ -163,11 +160,19 @@
 	{@linkcode TokenType}
 
 	- {@link TokenType.TEXT} - Text (character data). It doesn't contain entities and preprocessing instructions, as they are returned as separate tokens.
-	- {@link TokenType.CDATA} - The CDATA block, like `<![CDATA[...]]>`. It can occure in XML mode (`Settings.mode === 'xml'`), and in `svg` and `math` elements in HTML mode. In other places `<![CDATA[...]]>` is returned as {@link TokenType.JUNK}. This token **can** contain preprocessing instructions in it's {@link Token.text}.
 	- {@link TokenType.ENTITY} - One character reference, like `&apos;`, `&#39;` or `&#x27;`. This token also **can** contain preprocessing instructions in it's {@link Token.text}, like `&a<?...?>o<?...?>;`.
-	- {@link TokenType.COMMENT} - HTML comment, like `<!--...-->`. It **can** contain preprocessing instructions.
+	- {@link TokenType.PI_BEGIN} - The beginning of preprocessing instruction, i.e. `<?`. After this token, 0 or more parts will be returned as {@link TokenType.PI_MID}. Finally, the last part will be returned as {@link TokenType.PI_END} with the value of `?>`.
+	- {@link TokenType.PI_MID} - Text inside preprocessing instruction.
+	- {@link TokenType.PI_END} - Preprocessing instruction end (`?>`).
+	- {@link TokenType.COMMENT_BEGIN} - The beginning of HTML comment, i.e. `<!--`. After this token, 0 or more parts will be returned as {@link TokenType.COMMENT_MID} or {@link TokenType.COMMENT_MID_PI}. {@link TokenType.COMMENT_MID_PI} means a preprocessing instruction inside the comment. Finally, the last part will be returned as {@link TokenType.COMMENT_END} with the value of `-->`.
+	- {@link TokenType.COMMENT_MID} - Text inside comment.
+	- {@link TokenType.COMMENT_MID_PI} - If the comment contains preprocessing instructions, they are returned as this token type.
+	- {@link TokenType.COMMENT_END} - Comment end (`-->`).
+	- {@link TokenType.CDATA_BEGIN} - The beginning of CDATA block, i.e. `<![CDATA[`. It can occure in XML mode (`Settings.mode === 'xml'`), and in `svg` and `math` elements in HTML mode. In other places `<![CDATA[` is returned as {@link TokenType.JUNK}. After this token, 0 or more parts will be returned as {@link TokenType.CDATA_MID} or {@link TokenType.CDATA_MID_PI}. {@link TokenType.CDATA_MID_PI} means a preprocessing instruction inside the CDATA. Finally, the last part will be returned as {@link TokenType.CDATA_END} with the value of `]]>`.
+	- {@link TokenType.CDATA_MID} - Text inside CDATA.
+	- {@link TokenType.CDATA_MID_PI} - If the CDATA section contains preprocessing instructions, they are returned as this token type.
+	- {@link TokenType.CDATA_END} - CDATA section end (`]]>`).
 	- {@link TokenType.DTD} - Document type declaration, like `<!...>`. It **can** contain preprocessing instructions.
-	- {@link TokenType.PI} - Preprocessing instruction, like `<?...?>`.
 	- {@link TokenType.TAG_OPEN_BEGIN} - `<` char followed by tag name, like `<script`. Tag name **can** contain preprocessing instructions, like `<sc<?...?>ip<?...?>`. {@link Token.tagName} contains lowercased (if not XML and there're no preprocessing instructions) tag name.
 	- {@link TokenType.TAG_OPEN_SPACE} - Any number of whitespace characters (can include newline chars) inside opening tag markup. It separates tag name and attributes, and can occure between attributes, and at the end of opening tag.
 	- {@link TokenType.ATTR_NAME} - Attribute name. It **can** contain preprocessing instructions, like `a<?...?>b<?...?>`. `Token.getValue()` returns lowercased (if not XML and there're no preprocessing instructions) attribute name.
@@ -186,8 +191,12 @@
 	- {@link TokenType.JUNK_DUP_ATTR_NAME} - Name of duplicate attribute.
 	- {@link TokenType.FIX_STRUCTURE_TAG_OPEN} - `FIX_STRUCTURE_*` token types don't represent text in source code, but are generated by the tokenizer to suggest markup fixes. `FIX_STRUCTURE_TAG_OPEN` is automatically inserted opening tag, like `<b>`. Token text cannot contain preprocessing instructions. Consider the following markup: `<b>BOLD<u>BOLD-UND</b>UND</u>` many browsers will interpret this as `<b>BOLD<u>BOLD-UND</u></b><u>UND</u>`. Also this tokenizer will suggest `</u>` as {@link TokenType.FIX_STRUCTURE_TAG_CLOSE}, and `<u>` as {@link TokenType.FIX_STRUCTURE_TAG_OPEN}.
 	- {@link TokenType.FIX_STRUCTURE_TAG_OPEN_SPACE} - One space character that is suggested between attributes in situations like `<meta name="name"content="content">`.
+	- {@link TokenType.FIX_STRUCTURE_TAG_OPEN_END} - Automatically inserted `>` character at the end of stream, if there is opening tag not closed. Then 0 or more {@link TokenType.FIX_STRUCTURE_TAG_CLOSE} tokens can be generated to close all unclosed tags.
 	- {@link TokenType.FIX_STRUCTURE_TAG_CLOSE} - Autogenerated closing tag, like `</td>`. It's generated when closing tag is missing in the source markup.
 	- {@link TokenType.FIX_STRUCTURE_ATTR_QUOT} - One autogenerated quote character to surround attribute value, if `Settings.quoteAttributes` was requested, or when `Settings.mode === 'xml'`.
+	- {@link TokenType.FIX_STRUCTURE_PI_END} - If there was {@link TokenType.PI_BEGIN} generated, but then end of stream reached without terminating {@link TokenType.PI_END}, will generate this fix token with the value of `?>`. Also will generate it if a preprocessing instruction was opened and not closed inside a comment ({@link TokenType.COMMENT_MID_PI}) or a CDATA section ({@link TokenType.CDATA_MID_PI}).
+	- {@link TokenType.FIX_STRUCTURE_COMMENT_END} - If there was {@link TokenType.COMMENT_BEGIN} generated, but then end of stream reached without terminating {@link TokenType.COMMENT_END}, will generate this fix token with the value of `-->`.
+	- {@link TokenType.FIX_STRUCTURE_CDATA_END} - If there was {@link TokenType.CDATA_BEGIN} generated, but then end of stream reached without terminating {@link TokenType.CDATA_END}, will generate this fix token with the value of `]]>`.
 	- {@link TokenType.MORE_REQUEST} - Before returning the last token found in the source string, {@link htmltok()} generate this meta-token. If then you call `it.next(more)` with a nonempty string argument, this string will be appended to the last token, and the tokenization will continue.
 
 	## Settings
@@ -198,6 +207,7 @@
 	- `noCheckAttributes` - If `true`, will not try to determine duplicate attribute names. This can save some computing resources.
 	- `quoteAttributes` - If `true`, will generate {@link TokenType.FIX_STRUCTURE_ATTR_QUOT} tokens to suggest quotes around unquoted attribute values.
 	- `unquoteAttributes` - If `true`, will return quotes around attribute values as {@link TokenType.JUNK}, if such quotes are not necessary. HTML5 standard allows unquoted attributes (unlike XML), and removing quotes can make markup lighter, and more readable by humans and robots.
+	- `maxTokenLength` - If single unsplittable token exceeds this length, an exception will be thrown. However this check is only performed before issuing {@link TokenType.MORE_REQUEST} (so tokens can be longer as long as there's enough space in the buffer). Some tokens are splittable (are returned by parts), like comments, CDATA sections, and text, so this setting doesn't apply to them. Unsplitable tokens include: attribute names, attribute values and DTD.
 
 	## HTML normalization
 
